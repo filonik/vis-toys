@@ -1,0 +1,10 @@
+{
+  "name": "vis-toys",
+  "version": "0.1.0",
+  "author": "Daniel Filonik",
+  "license": "MIT",
+  "workspaces": [
+    "packages/core",
+    "packages/app"
+  ]
+}

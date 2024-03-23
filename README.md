@@ -1,2 +1,3 @@
 # vis-toys
-Visualization toys.
+A collection of visualization toys.
+
