@@ -10,10 +10,7 @@ export interface Props {
   language?: string
 }
 
-const props = withDefaults(defineProps<{
-  modelValue: string
-  language: string
-}>(), {
+const props = withDefaults(defineProps<Props>(), {
   language: "json"
 })
 
@@ -21,7 +18,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const value = useVModel(props, 'modelValue', emit)
 
-const domElement = ref<HTMLElement>()
+const elementRef = ref<HTMLElement>()
 
 const isDark = useDark();
 const options: monaco.editor.IStandaloneEditorConstructionOptions = {
@@ -33,8 +30,9 @@ const options: monaco.editor.IStandaloneEditorConstructionOptions = {
 
 let editor: monaco.editor.IStandaloneCodeEditor
 onMounted(() => {
-  if(domElement.value) {
-    editor = monaco.editor.create(domElement.value, {
+  const domElement = elementRef.value
+  if(domElement) {
+    editor = monaco.editor.create(domElement, {
       ...options,
       value: value.value,  
     })
@@ -46,7 +44,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="domElement"></div>
+  <div ref="elementRef"></div>
 </template>
 
 <style scoped>
