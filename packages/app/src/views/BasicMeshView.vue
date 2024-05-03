@@ -8,16 +8,17 @@ import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 import type { WebGpuResource, WebGpuState } from "@/composables/useWebGpu"
 import triangleShaderCode from '@/assets/shaders/triangle.wgsl?raw'
 
+import chroma from "chroma-js"
 import JSON5 from 'json5'
 
 const defaultSource = `{
   "vertices": [
-    { "position": [-1, -1, 1, 1], "color": [1, 0, 0, 1] },
-    { "position": [-1, 1, 1, 1], "color": [0, 1, 0, 1] },
-    { "position": [1, -1, 1, 1], "color": [0, 0, 1, 1] },
-    { "position": [1, 1, 1, 1], "color": [1, 1, 0, 1] }
+    {"position": [-1, -1, 1, 1], "color": "red"},
+    {"position": [-1, 1, 1, 1], "color": "green"},
+    {"position": [1, -1, 1, 1], "color": "blue"},
+    {"position": [1, 1, 1, 1], "color": "yellow"}
   ],
-  "indices": [0,1,2,1,2,3]
+  "indices": [0, 1, 2, 1, 2, 3]
 }`
 
 const state = reactive({
@@ -49,14 +50,15 @@ const writeVertexData: (
 ) => void = (out, data, offset=0, stride=1) => {
   for (let i = 0; i < data.length; i++) {
     const j = (i + offset) * stride
+    const color = chroma(data[i].color).gl()
     out[j + 0] = data[i].position[0] ?? 0.0
     out[j + 1] = data[i].position[1] ?? 0.0
     out[j + 2] = data[i].position[2] ?? 0.0
     out[j + 3] = data[i].position[3] ?? 1.0
-    out[j + 4] = data[i].color[0] ?? 0.0
-    out[j + 5] = data[i].color[1] ?? 0.0
-    out[j + 6] = data[i].color[2] ?? 0.0
-    out[j + 7] = data[i].color[3] ?? 1.0
+    out[j + 4] = color[0] ?? 0.0
+    out[j + 5] = color[1] ?? 0.0
+    out[j + 6] = color[2] ?? 0.0
+    out[j + 7] = color[3] ?? 1.0
   }
 }
 
@@ -216,8 +218,20 @@ const renderer: WebGpuResource = {
   }
 }
 
-useEventListener(document, 'keypress', (event) => {
-  if (event.key=="Enter" && event.shiftKey) {
+const shortcutSave: (event: KeyboardEvent) => boolean = (event) => {
+  switch(event.key) {
+    case "Enter":
+      return event.shiftKey
+    case "s":
+    case "S":
+      return event.ctrlKey || event.metaKey
+    default:
+      return false
+  }
+}
+
+useEventListener(document, 'keydown', (event) => {
+  if (shortcutSave(event)) {
     event.stopPropagation()
     event.preventDefault()
     try {
