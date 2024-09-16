@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Ref } from 'vue'
 import { computed, reactive } from "vue"
 import { useRoute, type LocationQueryValue } from "vue-router"
 import { useClipboard, useDark, useEventListener, useToggle } from '@vueuse/core';
@@ -323,8 +324,8 @@ const shortcutSave: (event: KeyboardEvent) => boolean = (event) => {
   }
 }
 
-const isDark = useDark()
-const toggleDark: () => boolean = useToggle(isDark)
+const isDark: Ref<boolean> = useDark()
+const toggleDark = useToggle(isDark)
 
 const source = computed(() => {
   const path = route.path + "?source=" + base64UrlEncode(state.source)
