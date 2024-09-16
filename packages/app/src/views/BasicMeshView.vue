@@ -328,8 +328,8 @@ const isDark: Ref<boolean> = useDark()
 const toggleDark = useToggle(isDark)
 
 const source = computed(() => {
-  const path = route.path + "?source=" + base64UrlEncode(state.source)
-  return window.location.origin + "/#" + path
+  const query = "?source=" + base64UrlEncode(state.source)
+  return window.location.origin + route.fullPath + query
 })
 const { copy } = useClipboard({ source })
 
