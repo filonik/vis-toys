@@ -13,6 +13,11 @@ const router = createRouter({
       name: 'home',
       component: BasicMeshView
     },
+    {
+      path: '/mesh/',
+      name: 'mesh',
+      component: BasicMeshView
+    },
   ]
 })
 

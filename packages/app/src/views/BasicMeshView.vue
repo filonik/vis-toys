@@ -329,7 +329,8 @@ const toggleDark = useToggle(isDark)
 
 const source = computed(() => {
   const query = "?source=" + base64UrlEncode(state.source)
-  return window.location.origin + route.fullPath + query
+  //return window.location.origin + route.fullPath + query
+  return window.location.href + query
 })
 const { copy } = useClipboard({ source })
 
