@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import { computed, reactive } from "vue"
-import { useRoute, type LocationQueryValue } from "vue-router"
+import { computed, reactive, watch } from "vue"
+import { useRoute, } from "vue-router"
 import { useClipboard, useDark, useEventListener, useToggle } from '@vueuse/core';
 
 import { SunIcon, MoonIcon, ShareIcon } from '@heroicons/vue/24/solid'
@@ -72,7 +72,7 @@ const defaultSource = `{
 
 const unArray = <T>(value: T|Array<T>) => Array.isArray(value)? value[0]: value
 
-const getInitialSource: () => string = () => {
+const sourceFromQuery: (defaultSource: string) => string = () => {
   const source = unArray(route.query.source)
   return source? base64UrlDecode(source): defaultSource
 }
@@ -86,7 +86,7 @@ const basicMeshFromJson: (value: any) => BasicMesh = (value) => ({
 })
 
 const state = reactive({
-  source: getInitialSource(),
+  source: defaultSource,
 })
 
 let value: BasicMesh | null = null
@@ -102,8 +102,6 @@ const tryLoad: (source: string) => void = (source) => {
     }
   }
 }
-
-  tryLoad(state.source)
 
 type RendererState = {
   pipelines: Record<number, GPURenderPipeline>
@@ -312,6 +310,14 @@ const renderer: WebGpuResource = {
   }
 }
 
+const save = () => {
+  tryLoad(state.source)
+  mesh.valid = false
+}
+
+state.source = sourceFromQuery(defaultSource)
+save()
+
 const shortcutSave: (event: KeyboardEvent) => boolean = (event) => {
   switch(event.key) {
     case "Enter":
@@ -340,8 +346,7 @@ useEventListener(document, 'keydown', (event) => {
     event.stopPropagation()
     event.preventDefault()
     try {
-      tryLoad(state.source)
-      mesh.valid = false
+      save()
     } catch (error) {
       if (error instanceof SyntaxError) {
         console.error(error.message)
@@ -360,6 +365,15 @@ const listeners: HTMLElementEventListenerMap = {
     console.log(event)
   }
 }
+
+watch(
+  () => route.query.source,
+  (value, oldValue) => {
+    state.source = sourceFromQuery(defaultSource)
+    save()
+  }
+)
+
 </script>
 
 <template>

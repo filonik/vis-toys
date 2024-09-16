@@ -44,14 +44,25 @@ onMounted(() => {
   }
 })
 
-useResizeObserver(elementRef, (entries) => {
-  const { width, height } = entries[0].contentRect
-  //console.log("resize", width, height)
-  editor.layout({ width, height })
-})
+watch(value, (value) => {
+  if (editor) {
+      if (value !== editor.getValue()) {
+        editor.setValue(value)
+      }
+    }
+  }
+)
 
 watch(theme, (value) => {
   monaco.editor.setTheme(value)
+})
+
+useResizeObserver(elementRef, (entries) => {
+  if (editor) {
+    const { width, height } = entries[0].contentRect
+    //console.log("resize", width, height)
+    editor.layout({ width, height })
+  }
 })
 </script>
 
