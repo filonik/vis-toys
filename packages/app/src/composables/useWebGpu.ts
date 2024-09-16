@@ -1,8 +1,12 @@
 import { onMounted, onBeforeUnmount } from 'vue'
 import type { Ref } from 'vue'
 
-import { useRafFn, useResizeObserver } from '@vueuse/core'
-import type { UseRafFnCallbackArguments } from '@vueuse/core'
+import { useEventListener, useRafFn, useResizeObserver } from '@vueuse/core'
+import type { UseRafFnCallbackArguments, GeneralEventListener } from '@vueuse/core'
+
+export type HTMLElementEventListenerMap = Partial<{
+  [E in keyof HTMLElementEventMap]: GeneralEventListener<HTMLElementEventMap[E]>
+}>;
 
 export type WebGpuState = {
   adapter: GPUAdapter
@@ -25,7 +29,8 @@ export interface WebGpuResource {
 
 export default async function useWebGpu(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
-  renderer: WebGpuResource
+  renderer: WebGpuResource,
+  listeners: HTMLElementEventListenerMap = {},
 ) {
   let state: WebGpuState | null = null
 
@@ -44,6 +49,10 @@ export default async function useWebGpu(
       renderer.onResize?.({ ...state, ...args })
     }
   })
+
+  for (const [event, listener] of Object.entries(listeners)) {
+    useEventListener(canvasRef, event, listener as any)
+  }
 
   onMounted(() => {
     initialize()

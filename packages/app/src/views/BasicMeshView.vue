@@ -1,15 +1,63 @@
 <script setup lang="ts">
-import { reactive } from "vue"
-import { useEventListener } from '@vueuse/core'
+import { computed, reactive } from "vue"
+import { useRoute, type LocationQueryValue } from "vue-router"
+import { useClipboard, useDark, useEventListener, useToggle } from '@vueuse/core';
+
+import { SunIcon, MoonIcon, ShareIcon } from '@heroicons/vue/24/solid'
+import { ArrowUpOnSquareIcon } from '@heroicons/vue/24/outline'
 
 import CodeEditor from '@/components/CodeEditor.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
-import type { WebGpuResource, WebGpuState } from "@/composables/useWebGpu"
-import triangleShaderCode from '@/assets/shaders/triangle.wgsl?raw'
+import type { HTMLElementEventListenerMap, WebGpuResource, WebGpuState } from "@/composables/useWebGpu"
+import basicShaderCode from '@/assets/shaders/basic.wgsl?raw'
 
 import chroma from "chroma-js"
 import JSON5 from 'json5'
+
+const route = useRoute()
+
+const base64UrlEncode: (str: string) => string = (value) => {
+  return btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+const base64UrlDecode: (value: string)=> string = (value) => {
+  return atob(value.replace(/-/g, '+').replace(/_/g, '/'));
+}
+
+type Mesh<T> = {
+  vertices: Array<T>,
+  indices: Array<number>,
+  topology: number,
+}
+
+type BasicVertex = {
+  position: Array<number>,
+  color: Array<number>
+}
+
+type BasicMesh = Mesh<BasicVertex>;
+
+const BasicVertexParser: {
+  position: (value: any) => Array<number>,
+  color: (value: any) => Array<number>,
+} = {
+  position: (value) => value,
+  color: (value) => Array.isArray(value)? value: chroma(value).gl(),
+}
+
+const BasicMeshParser: {
+  vertices: (value: any) => Array<BasicVertex>,
+  indices: (value: any) => Array<number>,
+  topology: (value: any) => number,
+} = {
+  vertices: (value) => value.map((vertex: any) => ({
+    position: BasicVertexParser.position(vertex.position),
+    color: BasicVertexParser.color(vertex.color),
+  })),
+  indices: (value) => value,
+  topology: (value) => value ?? 2,
+}
 
 const defaultSource = `{
   "vertices": [
@@ -21,14 +69,43 @@ const defaultSource = `{
   "indices": [0, 1, 2, 1, 2, 3]
 }`
 
-const state = reactive({
-  source: defaultSource,
+const unArray = <T>(value: T|Array<T>) => Array.isArray(value)? value[0]: value
+
+const getInitialSource: () => string = () => {
+  const source = unArray(route.query.source)
+  return source? base64UrlDecode(source): defaultSource
+}
+
+const jsonFromString: (value: string) => any = JSON5.parse
+
+const basicMeshFromJson: (value: any) => BasicMesh = (value) => ({
+  vertices: BasicMeshParser.vertices(value.vertices),
+  indices: BasicMeshParser.indices(value.indices),
+  topology: BasicMeshParser.topology(value.topology),
 })
 
-let value = JSON.parse(state.source)
+const state = reactive({
+  source: getInitialSource(),
+})
+
+let value: BasicMesh | null = null
+
+const tryLoad: (source: string) => void = (source) => {
+  try {
+    value = basicMeshFromJson(jsonFromString(source))
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error(error.message)
+    } else {
+      throw error;
+    }
+  }
+}
+
+  tryLoad(state.source)
 
 type RendererState = {
-  pipeline: GPURenderPipeline
+  pipelines: Record<number, GPURenderPipeline>
 }
 
 type MeshState = {
@@ -36,11 +113,34 @@ type MeshState = {
   vertexCount: number
   indexBuffer: GPUBuffer
   indexCount: number
+  topology: number
 }
 
 let rendererState: RendererState | null = null
 
 let meshState: MeshState | null = null
+
+const PRIMITIVE_TOPOLOGIES: Record<number, GPUPrimitiveTopology> = {
+  0: 'point-list',
+  1: 'line-list',
+  2: 'triangle-list',
+}
+
+const BASIC_VERTEX_LAYOUT: GPUVertexBufferLayout =  {
+  arrayStride: 32,
+  attributes: [
+    {
+      shaderLocation: 0, // VertexIn.position
+      offset: 0,
+      format: 'float32x4'
+    },
+    {
+      shaderLocation: 1, // VertexIn.color
+      offset: 16,
+      format: 'float32x4'
+    }
+  ]
+}
 
 const writeVertexData: (
   out: Float32Array,
@@ -50,15 +150,14 @@ const writeVertexData: (
 ) => void = (out, data, offset=0, stride=1) => {
   for (let i = 0; i < data.length; i++) {
     const j = (i + offset) * stride
-    const color = chroma(data[i].color).gl()
     out[j + 0] = data[i].position[0] ?? 0.0
     out[j + 1] = data[i].position[1] ?? 0.0
     out[j + 2] = data[i].position[2] ?? 0.0
     out[j + 3] = data[i].position[3] ?? 1.0
-    out[j + 4] = color[0] ?? 0.0
-    out[j + 5] = color[1] ?? 0.0
-    out[j + 6] = color[2] ?? 0.0
-    out[j + 7] = color[3] ?? 1.0
+    out[j + 4] = data[i].color[0] ?? 0.0
+    out[j + 5] = data[i].color[1] ?? 0.0
+    out[j + 6] = data[i].color[2] ?? 0.0
+    out[j + 7] = data[i].color[3] ?? 1.0
   }
 }
 
@@ -76,13 +175,15 @@ const writeIndexData: (
 
 const mesh: {
   valid: boolean,
-  create: (args: WebGpuState) => MeshState
+  create: (args: WebGpuState) => MeshState | null
   delete: (state: MeshState, args: WebGpuState) => void
   validate: (args: WebGpuState) => void
  } = {
   valid: false,
   create({ device }) {
     console.log("Mesh::create")
+
+    if (!value) return null
 
     const vertexCount: number = value.vertices.length
     const vertexStride: number = 8
@@ -112,7 +213,9 @@ const mesh: {
 
     device.queue.writeBuffer(indexBuffer, 0, indexData)
 
-    return { vertexBuffer, vertexCount, indexBuffer, indexCount }
+    const topology = value.topology
+
+    return { vertexBuffer, vertexCount, indexBuffer, indexCount, topology }
   },
   delete(state) {
     console.log("Mesh::delete")
@@ -136,41 +239,29 @@ const renderer: WebGpuResource = {
 
     if(rendererState) return
 
-    const triangleShaderModule = device.createShaderModule({
-      code: triangleShaderCode
+    const basicShaderModule = device.createShaderModule({
+      code: basicShaderCode
     })
 
-    const pipeline = device.createRenderPipeline({
-      layout: 'auto',
-      vertex: {
-        module: triangleShaderModule,
-        entryPoint: 'vertexMain',
-        buffers: [
-          {
-            arrayStride: 32,
-            attributes: [
-              {
-                shaderLocation: 0, // VertexIn.position
-                offset: 0,
-                format: 'float32x4'
-              },
-              {
-                shaderLocation: 1, // VertexIn.color
-                offset: 16,
-                format: 'float32x4'
-              }
-            ]
-          }
-        ]
-      },
-      fragment: {
-        module: triangleShaderModule,
-        entryPoint: 'fragmentMain',
-        targets: [{ format }]
-      }
-    })
+    const pipelines = Object.fromEntries(Object.entries(PRIMITIVE_TOPOLOGIES).map(([key, value]) => [key, device.createRenderPipeline({
+        layout: 'auto',
+        vertex: {
+          module: basicShaderModule,
+          entryPoint: 'vertexMain',
+          buffers: [BASIC_VERTEX_LAYOUT]
+        },
+        fragment: {
+          module: basicShaderModule,
+          entryPoint: 'fragmentMain',
+          targets: [{ format }]
+        },
+        primitive: {
+          topology: value,
+        }
+      })]
+    ))
 
-    rendererState = { pipeline }
+    rendererState = { pipelines }
   },
   onRender(args) {
     const {device, context} = args
@@ -192,7 +283,9 @@ const renderer: WebGpuResource = {
       ]
     })
 
-    pass.setPipeline(rendererState.pipeline)
+    const pipeline = rendererState.pipelines[meshState.topology]
+
+    pass.setPipeline(pipeline)
 
     pass.setVertexBuffer(0, meshState.vertexBuffer)
     pass.setIndexBuffer(meshState.indexBuffer, 'uint32')
@@ -230,12 +323,21 @@ const shortcutSave: (event: KeyboardEvent) => boolean = (event) => {
   }
 }
 
+const isDark = useDark()
+const toggleDark = useToggle(isDark)
+
+const source = computed(() => {
+  const path = route.path + "?source=" + base64UrlEncode(state.source)
+  return window.location.origin + "/#" + path
+})
+const { copy } = useClipboard({ source })
+
 useEventListener(document, 'keydown', (event) => {
   if (shortcutSave(event)) {
     event.stopPropagation()
     event.preventDefault()
     try {
-      value = JSON5.parse(state.source)
+      tryLoad(state.source)
       mesh.valid = false
     } catch (error) {
       if (error instanceof SyntaxError) {
@@ -247,13 +349,31 @@ useEventListener(document, 'keydown', (event) => {
   }
 })
 
+const listeners: HTMLElementEventListenerMap = {
+  keydown: (event: KeyboardEvent) => {
+    console.log(event)
+  },
+  wheel: (event: WheelEvent) => {
+    console.log(event)
+  }
+}
 </script>
 
 <template>
+  <header class="flex flex-row h-12 p-1">
+    <span class="flex-grow"></span>
+    <button class="rounded-lg p-2" type="button" @click="copy()" >
+      <ArrowUpOnSquareIcon class="w-5 h-5"/>
+    </button>
+    <button class="rounded-lg p-2" type="button" @click="toggleDark()">
+      <MoonIcon class="w-5 h-5" :class="[isDark? 'hidden': 'visible']"/>
+      <SunIcon class="w-5 h-5" :class="[isDark? 'visible': 'hidden']"/>
+    </button>
+  </header>
   <main class="h-full grid grid-rows-2 grid-cols-none md:grid-rows-none md:grid-cols-2">
     <CodeEditor v-model="state.source"/>
     <Suspense>
-      <WebGpuCanvas class="h-full w-full" :renderer/>
+      <WebGpuCanvas class="h-full w-full" :renderer :listeners/>
     </Suspense>
   </main>
 </template>

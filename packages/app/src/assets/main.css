@@ -5,9 +5,9 @@
 @tailwind utilities;
 
 body {
-  @apply h-[100svh];
+  @apply h-[100svh] overflow-hidden text-text dark:text-text-dark bg-background dark:bg-background-dark;
 }
 
 #app {
-  @apply h-full;
+  @apply h-full flex flex-col;
 }
