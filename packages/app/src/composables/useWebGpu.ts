@@ -108,7 +108,9 @@ export default async function useWebGpu(
 
     const format = navigator.gpu.getPreferredCanvasFormat()
 
-    context.configure({ device, format })
+    const alphaMode = 'premultiplied'
+
+    context.configure({ device, format, alphaMode })
 
     state = { adapter, device, context, format }
   }

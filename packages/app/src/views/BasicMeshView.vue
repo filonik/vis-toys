@@ -62,10 +62,10 @@ const BasicMeshParser: {
 
 const defaultSource = `{
   "vertices": [
-    {"position": [-1, -1, 1, 1], "color": "red"},
-    {"position": [-1, 1, 1, 1], "color": "green"},
-    {"position": [1, -1, 1, 1], "color": "blue"},
-    {"position": [1, 1, 1, 1], "color": "yellow"}
+    {"position": [-0.5, -0.5, 0, 1], "color": "red"},
+    {"position": [-0.5, 0.5, 0, 1], "color": "green"},
+    {"position": [0.5, -0.5, 0, 1], "color": "blue"},
+    {"position": [0.5, 0.5, 0, 1], "color": "yellow"}
   ],
   "indices": [0, 1, 2, 1, 2, 3]
 }`
@@ -274,7 +274,7 @@ const renderer: WebGpuResource = {
     const pass = commandEncoder.beginRenderPass({
       colorAttachments: [
         {
-          clearValue: Float32Array.of(0, 0, 0, 1),
+          clearValue: Float32Array.of(0, 0, 0, 0),
           loadOp: 'clear',
           storeOp: 'store',
           view: context.getCurrentTexture().createView(),
@@ -368,7 +368,7 @@ const listeners: HTMLElementEventListenerMap = {
 
 watch(
   () => route.query.source,
-  (value, oldValue) => {
+  (value) => {
     state.source = sourceFromQuery(defaultSource)
     save()
   }
