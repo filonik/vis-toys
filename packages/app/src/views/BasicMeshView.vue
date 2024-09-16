@@ -324,7 +324,7 @@ const shortcutSave: (event: KeyboardEvent) => boolean = (event) => {
 }
 
 const isDark = useDark()
-const toggleDark = useToggle(isDark)
+const toggleDark: () => boolean = useToggle(isDark)
 
 const source = computed(() => {
   const path = route.path + "?source=" + base64UrlEncode(state.source)
