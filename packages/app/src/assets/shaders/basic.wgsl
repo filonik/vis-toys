@@ -8,10 +8,16 @@ struct FragmentIn {
   @location(0) color: vec4f,
 }
 
+struct UniformIn {
+  projection: mat4x4f,
+};
+ 
+@group(0) @binding(0) var<uniform> uIn: UniformIn;
+
 @vertex
 fn vertexMain(in: VertexIn) -> FragmentIn {
   var out: FragmentIn;
-  out.position = in.position;
+  out.position = uIn.projection * in.position;
   out.color = in.color;
   return out;
 }

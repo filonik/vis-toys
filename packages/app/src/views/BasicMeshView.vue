@@ -108,9 +108,11 @@ const tryLoad: (source: string) => void = (source) => {
   }
 }
 
-type RendererState = {
-  pipelines: Record<number, GPURenderPipeline>
-}
+type RendererState = Record<number, {
+  pipeline: GPURenderPipeline
+  bindGroup: GPUBindGroup
+  uniformBuffer: GPUBuffer
+}>
 
 type MeshState = {
   vertexBuffer: GPUBuffer
@@ -237,6 +239,32 @@ const mesh: {
   }
 }
 
+const mat4 = () => {
+  const shape = [4,4]
+  const strides = [1,4]
+  const length = shape.reduce((x,y) => x*y, 1)
+  const self = {
+    shape,
+    strides,
+    data: new Float32Array(length),
+    get(index: [number,number]): number {
+      const linearIndex = index[0]*self.strides[0]+index[1]*self.strides[1]
+      return self.data[linearIndex];
+    },
+    set(index: [number,number], value: number) {
+      const linearIndex = index[0]*self.strides[0]+index[1]*self.strides[1]
+      self.data[linearIndex] = value
+    }
+  }
+  return self;
+}
+
+const uniformValues = mat4()
+uniformValues.set([0,0], 1.0)
+uniformValues.set([1,1], 1.0)
+uniformValues.set([2,2], 1.0)
+uniformValues.set([3,3], 1.0)
+
 const renderer: WebGpuResource = {
   onCreate({ device, format }) {
     console.log("BasicMeshView::onCreate")
@@ -246,8 +274,15 @@ const renderer: WebGpuResource = {
     const basicShaderModule = device.createShaderModule({
       code: basicShaderCode
     })
+    
+    const uniformBuffer = device.createBuffer({
+      label: 'uniforms',
+      size: uniformValues.data.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
 
-    const pipelines = Object.fromEntries(Object.entries(PRIMITIVE_TOPOLOGIES).map(([key, value]) => [key, device.createRenderPipeline({
+    rendererState = Object.entries(PRIMITIVE_TOPOLOGIES).map(([key, value]) => {
+      const pipeline = device.createRenderPipeline({
         layout: 'auto',
         vertex: {
           module: basicShaderModule,
@@ -262,10 +297,18 @@ const renderer: WebGpuResource = {
         primitive: {
           topology: value,
         }
-      })]
-    ))
+      })
 
-    rendererState = { pipelines }
+      const bindGroup = device.createBindGroup({
+        label: 'bind group for object',
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: uniformBuffer }},
+        ],
+      })
+
+      return {pipeline, bindGroup, uniformBuffer}
+    })
   },
   onRender(args) {
     const {device, context} = args
@@ -287,9 +330,12 @@ const renderer: WebGpuResource = {
       ]
     })
 
-    const pipeline = rendererState.pipelines[meshState.topology]
+    const {pipeline, bindGroup, uniformBuffer} = rendererState[meshState.topology]
 
     pass.setPipeline(pipeline)
+
+    device.queue.writeBuffer(uniformBuffer, 0, uniformValues.data);
+    pass.setBindGroup(0, bindGroup);
 
     pass.setVertexBuffer(0, meshState.vertexBuffer)
     pass.setIndexBuffer(meshState.indexBuffer, 'uint32')
@@ -365,12 +411,41 @@ useEventListener(document, 'keydown', (event) => {
 const options: UseWebGpuOptions = {
   alphaMode: 'premultiplied',
 }
+
 const listeners: HTMLElementEventListenerMap = {
   keydown: (event: KeyboardEvent) => {
     console.log(event)
   },
-  wheel: (event: WheelEvent) => {
+  keyup: (event: KeyboardEvent) => {
     console.log(event)
+
+    const delta = [0,0]
+    switch (event.key) {
+      case 'ArrowLeft':
+        delta[0] -= 1
+        break
+      case 'ArrowUp':
+        delta[1] += 1
+        break
+      case 'ArrowRight':
+        delta[0] += 1
+        break
+      case 'ArrowDown':
+        delta[1] -= 1
+        break
+    }
+
+    const step = event.shiftKey? 0.02: 0.2
+
+    uniformValues.set([0,3], uniformValues.get([0,3])+delta[0]*step)
+    uniformValues.set([1,3], uniformValues.get([1,3])+delta[1]*step)
+
+    console.log(uniformValues.data)
+  },
+  wheel: (event: WheelEvent) => {
+    const scale = 1.0 + event.deltaY/100.0
+    uniformValues.set([0,0], uniformValues.get([0,0])*scale)
+    uniformValues.set([1,1], uniformValues.get([1,1])*scale)
   }
 }
 
