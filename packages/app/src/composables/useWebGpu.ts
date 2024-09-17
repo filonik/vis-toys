@@ -15,6 +15,11 @@ export type WebGpuState = {
   format: GPUTextureFormat
 }
 
+export type UseWebGpuOptions = {
+  alphaMode?: GPUCanvasAlphaMode
+  format?: GPUTextureFormat
+}
+
 export type CreateArguments = WebGpuState
 export type ResizeArguments = WebGpuState & DOMRect
 export type RenderArguments = WebGpuState & UseRafFnCallbackArguments
@@ -31,6 +36,7 @@ export default async function useWebGpu(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
   renderer: WebGpuResource,
   listeners: HTMLElementEventListenerMap = {},
+  options: UseWebGpuOptions = {},
 ) {
   let state: WebGpuState | null = null
 
@@ -108,7 +114,7 @@ export default async function useWebGpu(
 
     const format = navigator.gpu.getPreferredCanvasFormat()
 
-    const alphaMode = 'premultiplied'
+    const { alphaMode } = options
 
     context.configure({ device, format, alphaMode })
 

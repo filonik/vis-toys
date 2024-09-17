@@ -8,13 +8,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        "background": "var(--vt-c-white)",
-        "background-dark": "var(--vt-c-black)",
-        "text": "var(--vt-c-text-light-1)",
-        "text-dark": "var(--vt-c-text-dark-2)",
+        "background": "var(--color-background)", // "color(from var(--color-background) / <alpha-value>)",
+        "background-soft": "var(--color-background-soft)",
+        "background-mute": "var(--color-background-mute)",
+        "border": "var(--color-border)",
+        "border-hover": "var(--color-border-hover)",
+        "heading": "var(--color-heading)",
+        "text": "var(--color-text)",
       },
     },
   },
   plugins: [],
 }
-

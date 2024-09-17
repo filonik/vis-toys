@@ -10,7 +10,7 @@ import { ArrowUpOnSquareIcon } from '@heroicons/vue/24/outline'
 import CodeEditor from '@/components/CodeEditor.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
-import type { HTMLElementEventListenerMap, WebGpuResource, WebGpuState } from "@/composables/useWebGpu"
+import type { HTMLElementEventListenerMap, WebGpuResource, WebGpuState, UseWebGpuOptions } from "@/composables/useWebGpu"
 import basicShaderCode from '@/assets/shaders/basic.wgsl?raw'
 
 import chroma from "chroma-js"
@@ -39,28 +39,33 @@ type BasicVertex = {
 
 type BasicMesh = Mesh<BasicVertex>;
 
+const empty: <T>() => Array<T> = () => []
+const range: (lower: number, upper: number) => Array<number> = (lower, upper) => Array.from({length:upper-lower}, (_, i)=>lower+i)
+
 const BasicVertexParser: {
-  position: (value: any) => Array<number>,
-  color: (value: any) => Array<number>,
+  position: (value: any, defaultValue: () => Array<number>) => Array<number>,
+  color: (value: any, defaultValue: () => Array<number>) => Array<number>,
 } = {
   position: (value) => value,
-  color: (value) => Array.isArray(value)? value: chroma(value).gl(),
+  color: (value, defaultValue) => value? (Array.isArray(value)? value: chroma(value).gl()): defaultValue(),
 }
 
 const BasicMeshParser: {
-  vertices: (value: any) => Array<BasicVertex>,
-  indices: (value: any) => Array<number>,
+  vertices: (value: any, defaultValue: () => Array<BasicVertex>) => Array<BasicVertex>,
+  indices: (value: any, defaultValue: () => Array<number>) => Array<number>,
   topology: (value: any) => number,
 } = {
-  vertices: (value) => value.map((vertex: any) => ({
-    position: BasicVertexParser.position(vertex.position),
-    color: BasicVertexParser.color(vertex.color),
-  })),
-  indices: (value) => value,
-  topology: (value) => value ?? 2,
+  vertices: (value, defaultValue) => value?.map((vertex: any) => ({
+    position: BasicVertexParser.position(vertex.position, empty),
+    color: BasicVertexParser.color(vertex.color, empty),
+  })) ?? defaultValue(),
+  indices: (value, defaultValue) => value ?? defaultValue(),
+  topology: (value) => value ?? 0,
 }
 
+// Topology <-> Type?
 const defaultSource = `{
+  "topology": 2,
   "vertices": [
     {"position": [-0.5, -0.5, 0, 1], "color": "red"},
     {"position": [-0.5, 0.5, 0, 1], "color": "green"},
@@ -80,8 +85,8 @@ const sourceFromQuery: (defaultSource: string) => string = () => {
 const jsonFromString: (value: string) => any = JSON5.parse
 
 const basicMeshFromJson: (value: any) => BasicMesh = (value) => ({
-  vertices: BasicMeshParser.vertices(value.vertices),
-  indices: BasicMeshParser.indices(value.indices),
+  vertices: BasicMeshParser.vertices(value.vertices, empty),
+  indices: BasicMeshParser.indices(value.indices, () => range(0, value.vertices?.length ?? 0)),
   topology: BasicMeshParser.topology(value.topology),
 })
 
@@ -153,9 +158,9 @@ const writeVertexData: (
     out[j + 1] = data[i].position[1] ?? 0.0
     out[j + 2] = data[i].position[2] ?? 0.0
     out[j + 3] = data[i].position[3] ?? 1.0
-    out[j + 4] = data[i].color[0] ?? 0.0
-    out[j + 5] = data[i].color[1] ?? 0.0
-    out[j + 6] = data[i].color[2] ?? 0.0
+    out[j + 4] = data[i].color[0] ?? 1.0
+    out[j + 5] = data[i].color[1] ?? 1.0
+    out[j + 6] = data[i].color[2] ?? 1.0
     out[j + 7] = data[i].color[3] ?? 1.0
   }
 }
@@ -357,6 +362,9 @@ useEventListener(document, 'keydown', (event) => {
   }
 })
 
+const options: UseWebGpuOptions = {
+  alphaMode: 'premultiplied',
+}
 const listeners: HTMLElementEventListenerMap = {
   keydown: (event: KeyboardEvent) => {
     console.log(event)
@@ -377,7 +385,8 @@ watch(
 </script>
 
 <template>
-  <header class="flex flex-row h-12 p-1">
+  <header class="flex flex-row items-center h-12 p-1 border-b-2 border-border">
+    <h1 class="px-2 text-lg">Mesh</h1>
     <span class="flex-grow"></span>
     <button class="rounded-lg p-2" type="button" @click="copy()" >
       <ArrowUpOnSquareIcon class="w-5 h-5"/>
@@ -390,7 +399,7 @@ watch(
   <main class="h-full grid grid-rows-2 grid-cols-none md:grid-rows-none md:grid-cols-2">
     <CodeEditor v-model="state.source"/>
     <Suspense>
-      <WebGpuCanvas class="h-full w-full" :renderer :listeners/>
+      <WebGpuCanvas class="h-full w-full" :renderer :listeners :options/>
     </Suspense>
   </main>
 </template>
