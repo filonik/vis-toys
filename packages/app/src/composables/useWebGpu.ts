@@ -21,7 +21,7 @@ export type UseWebGpuOptions = {
 }
 
 export type CreateArguments = WebGpuState
-export type ResizeArguments = WebGpuState & DOMRect
+export type ResizeArguments = WebGpuState & {entries: readonly ResizeObserverEntry[]}
 export type RenderArguments = WebGpuState & UseRafFnCallbackArguments
 export type DeleteArguments = WebGpuState
 
@@ -51,8 +51,7 @@ export default async function useWebGpu(
 
   useResizeObserver(canvasRef, (entries) => {
     if (state) {
-      const args = entries[0].contentRect
-      renderer.onResize?.({ ...state, ...args })
+      renderer.onResize?.({ ...state, entries })
     }
   })
 

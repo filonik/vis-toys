@@ -5,17 +5,17 @@ import useWebGpu, { type HTMLElementEventListenerMap, type WebGpuResource, type 
 
 export interface Props {
   renderer: WebGpuResource
-  listeners: HTMLElementEventListenerMap
   width?: number
   height?: number
   options?: UseWebGpuOptions
+  listeners?: HTMLElementEventListenerMap
 }
 
 const props = withDefaults(defineProps<Props>(), {
   width: 1920,
   height: 1080,
+  options: () => ({}),
   listeners: () => ({}),
-  options: () => ({})
 })
 
 const canvasRef = ref<HTMLCanvasElement>()

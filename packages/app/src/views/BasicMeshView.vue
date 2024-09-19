@@ -16,6 +16,8 @@ import basicShaderCode from '@/assets/shaders/basic.wgsl?raw'
 import chroma from "chroma-js"
 import JSON5 from 'json5'
 
+import { matf, mat4x4f, range } from "@/mat"
+
 const route = useRoute()
 
 const base64UrlEncode: (str: string) => string = (value) => {
@@ -33,20 +35,19 @@ type Mesh<T> = {
 }
 
 type BasicVertex = {
-  position: Array<number>,
+  transform: Float32Array,
   color: Array<number>
 }
 
 type BasicMesh = Mesh<BasicVertex>;
 
 const empty: <T>() => Array<T> = () => []
-const range: (lower: number, upper: number) => Array<number> = (lower, upper) => Array.from({length:upper-lower}, (_, i)=>lower+i)
 
 const BasicVertexParser: {
-  position: (value: any, defaultValue: () => Array<number>) => Array<number>,
+  transform: (value: any, defaultValue: () => Float32Array) => Float32Array,
   color: (value: any, defaultValue: () => Array<number>) => Array<number>,
 } = {
-  position: (value) => value,
+  transform: (value, defaultValue) => value ?? defaultValue(),
   color: (value, defaultValue) => value? (Array.isArray(value)? value: chroma(value).gl()): defaultValue(),
 }
 
@@ -56,7 +57,12 @@ const BasicMeshParser: {
   topology: (value: any) => number,
 } = {
   vertices: (value, defaultValue) => value?.map((vertex: any) => ({
-    position: BasicVertexParser.position(vertex.position, empty),
+    transform: BasicVertexParser.transform(vertex.transform, () => {
+      if (vertex.transform) {
+        return Float32Array.from({length: 4*4}, (i: number) => vertex.transform[i])
+      }
+      return mat4x4f.T(vertex.position).data
+    }),
     color: BasicVertexParser.color(vertex.color, empty),
   })) ?? defaultValue(),
   indices: (value, defaultValue) => value ?? defaultValue(),
@@ -67,19 +73,18 @@ const BasicMeshParser: {
 const defaultSource = `{
   "topology": 2,
   "vertices": [
-    {"position": [-0.5, -0.5, 0, 1], "color": "red"},
-    {"position": [-0.5, 0.5, 0, 1], "color": "green"},
-    {"position": [0.5, -0.5, 0, 1], "color": "blue"},
-    {"position": [0.5, 0.5, 0, 1], "color": "yellow"}
+    {"position": [-0.5, -0.5], "color": "red"},
+    {"position": [-0.5, 0.5], "color": "green"},
+    {"position": [0.5, -0.5], "color": "blue"},
+    {"position": [0.5, 0.5], "color": "yellow"}
   ],
   "indices": [0, 1, 2, 1, 2, 3]
 }`
 
 const unArray = <T>(value: T|Array<T>) => Array.isArray(value)? value[0]: value
 
-const sourceFromQuery: (defaultSource: string) => string = () => {
-  const source = unArray(route.query.source)
-  return source? base64UrlDecode(source): defaultSource
+const sourceFromQuery: (value: string | null, defaultSource: string) => string = (value, defaultSource) => {
+  return value? base64UrlDecode(value): defaultSource
 }
 
 const jsonFromString: (value: string) => any = JSON5.parse
@@ -133,16 +138,31 @@ const PRIMITIVE_TOPOLOGIES: Record<number, GPUPrimitiveTopology> = {
 }
 
 const BASIC_VERTEX_LAYOUT: GPUVertexBufferLayout =  {
-  arrayStride: 32,
+  arrayStride: 5*4*4,
   attributes: [
     {
-      shaderLocation: 0, // VertexIn.position
-      offset: 0,
+      shaderLocation: 0, // VertexIn.transform0
+      offset: 0*4*4,
       format: 'float32x4'
     },
     {
-      shaderLocation: 1, // VertexIn.color
-      offset: 16,
+      shaderLocation: 1, // VertexIn.transform1
+      offset: 1*4*4,
+      format: 'float32x4'
+    },
+    {
+      shaderLocation: 2, // VertexIn.transform1
+      offset: 2*4*4,
+      format: 'float32x4'
+    },
+    {
+      shaderLocation: 3, // VertexIn.transform3
+      offset: 3*4*4,
+      format: 'float32x4'
+    },
+    {
+      shaderLocation: 4, // VertexIn.color
+      offset: 4*4*4,
       format: 'float32x4'
     }
   ]
@@ -156,14 +176,26 @@ const writeVertexData: (
 ) => void = (out, data, offset=0, stride=1) => {
   for (let i = 0; i < data.length; i++) {
     const j = (i + offset) * stride
-    out[j + 0] = data[i].position[0] ?? 0.0
-    out[j + 1] = data[i].position[1] ?? 0.0
-    out[j + 2] = data[i].position[2] ?? 0.0
-    out[j + 3] = data[i].position[3] ?? 1.0
-    out[j + 4] = data[i].color[0] ?? 1.0
-    out[j + 5] = data[i].color[1] ?? 1.0
-    out[j + 6] = data[i].color[2] ?? 1.0
-    out[j + 7] = data[i].color[3] ?? 1.0
+    out[j + 0] = data[i].transform[0] ?? 1.0
+    out[j + 1] = data[i].transform[1] ?? 0.0
+    out[j + 2] = data[i].transform[2] ?? 0.0
+    out[j + 3] = data[i].transform[3] ?? 0.0
+    out[j + 4] = data[i].transform[4] ?? 0.0
+    out[j + 5] = data[i].transform[5] ?? 1.0
+    out[j + 6] = data[i].transform[6] ?? 0.0
+    out[j + 7] = data[i].transform[7] ?? 0.0
+    out[j + 8] = data[i].transform[8] ?? 0.0
+    out[j + 9] = data[i].transform[9] ?? 0.0
+    out[j + 10] = data[i].transform[10] ?? 1.0
+    out[j + 11] = data[i].transform[11] ?? 0.0
+    out[j + 12] = data[i].transform[12] ?? 0.0
+    out[j + 13] = data[i].transform[13] ?? 0.0
+    out[j + 14] = data[i].transform[14] ?? 0.0
+    out[j + 15] = data[i].transform[15] ?? 1.0
+    out[j + 16] = data[i].color[0] ?? 1.0
+    out[j + 17] = data[i].color[1] ?? 1.0
+    out[j + 18] = data[i].color[2] ?? 1.0
+    out[j + 19] = data[i].color[3] ?? 1.0
   }
 }
 
@@ -192,7 +224,7 @@ const mesh: {
     if (!value) return null
 
     const vertexCount: number = value.vertices.length
-    const vertexStride: number = 8
+    const vertexStride: number = 5*4
 
     const vertexData = new Float32Array(vertexCount * vertexStride)
 
@@ -239,31 +271,9 @@ const mesh: {
   }
 }
 
-const mat4 = () => {
-  const shape = [4,4]
-  const strides = [1,4]
-  const length = shape.reduce((x,y) => x*y, 1)
-  const self = {
-    shape,
-    strides,
-    data: new Float32Array(length),
-    get(index: [number,number]): number {
-      const linearIndex = index[0]*self.strides[0]+index[1]*self.strides[1]
-      return self.data[linearIndex];
-    },
-    set(index: [number,number], value: number) {
-      const linearIndex = index[0]*self.strides[0]+index[1]*self.strides[1]
-      self.data[linearIndex] = value
-    }
-  }
-  return self;
-}
-
-const uniformValues = mat4()
-uniformValues.set([0,0], 1.0)
-uniformValues.set([1,1], 1.0)
-uniformValues.set([2,2], 1.0)
-uniformValues.set([3,3], 1.0)
+const displayValues = mat4x4f.I()
+const cameraValues = mat4x4f.I()
+const uniformValues = mat4x4f.I()
 
 const renderer: WebGpuResource = {
   onCreate({ device, format }) {
@@ -310,6 +320,13 @@ const renderer: WebGpuResource = {
       return {pipeline, bindGroup, uniformBuffer}
     })
   },
+  onResize({ entries }) {
+    const {width, height} = entries[0].contentRect
+    const aspect = Math.min(width, height)
+    displayValues.set([1,1], aspect/width)
+    displayValues.set([2,2], aspect/height)
+    console.log(displayValues)
+  },
   onRender(args) {
     const {device, context} = args
 
@@ -333,6 +350,8 @@ const renderer: WebGpuResource = {
     const {pipeline, bindGroup, uniformBuffer} = rendererState[meshState.topology]
 
     pass.setPipeline(pipeline)
+
+    matf.mul(displayValues, cameraValues, uniformValues)
 
     device.queue.writeBuffer(uniformBuffer, 0, uniformValues.data);
     pass.setBindGroup(0, bindGroup);
@@ -366,7 +385,7 @@ const save = () => {
   mesh.valid = false
 }
 
-state.source = sourceFromQuery(defaultSource)
+state.source = sourceFromQuery(unArray(route.query.source), defaultSource)
 save()
 
 const shortcutSave: (event: KeyboardEvent) => boolean = (event) => {
@@ -417,9 +436,8 @@ const listeners: HTMLElementEventListenerMap = {
     console.log(event)
   },
   keyup: (event: KeyboardEvent) => {
-    console.log(event)
-
     const delta = [0,0]
+
     switch (event.key) {
       case 'ArrowLeft':
         delta[0] -= 1
@@ -435,24 +453,21 @@ const listeners: HTMLElementEventListenerMap = {
         break
     }
 
-    const step = event.shiftKey? 0.02: 0.2
-
-    uniformValues.set([0,3], uniformValues.get([0,3])+delta[0]*step)
-    uniformValues.set([1,3], uniformValues.get([1,3])+delta[1]*step)
-
-    console.log(uniformValues.data)
+    const step = event.shiftKey? 0.5: 0.05
+    cameraValues.set([1,0], cameraValues.get([1,0])+delta[0]*step)
+    cameraValues.set([2,0], cameraValues.get([2,0])+delta[1]*step)
   },
   wheel: (event: WheelEvent) => {
     const scale = 1.0 + event.deltaY/100.0
-    uniformValues.set([0,0], uniformValues.get([0,0])*scale)
-    uniformValues.set([1,1], uniformValues.get([1,1])*scale)
+    cameraValues.set([1,1], cameraValues.get([1,1])*scale)
+    cameraValues.set([2,2], cameraValues.get([2,2])*scale)
   }
 }
 
 watch(
   () => route.query.source,
   (value) => {
-    state.source = sourceFromQuery(defaultSource)
+    state.source = sourceFromQuery(unArray(value), defaultSource)
     save()
   }
 )
