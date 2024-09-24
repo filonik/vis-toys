@@ -1,9 +1,9 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-//import EditorView from '../views/EditorView.vue'
-//import CanvasView from '../views/CanvasView.vue'
-import BasicMeshView from '../views/BasicMeshView.vue'
-
+//import EditorView from '@/views/EditorView.vue'
+//import CanvasView from '@/views/CanvasView.vue'
+import BasicMeshView from '@/views/BasicMeshView.vue'
+import SimplicialMeshView from "@/views/SimplicialMeshView.vue"
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -14,9 +14,9 @@ const router = createRouter({
       component: BasicMeshView
     },
     {
-      path: '/mesh/',
-      name: 'mesh',
-      component: BasicMeshView
+      path: '/simplicial-mesh/',
+      name: 'simplicial-mesh',
+      component: SimplicialMeshView
     },
   ]
 })

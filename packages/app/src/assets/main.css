@@ -32,6 +32,11 @@ body {
   @apply h-[100svh] overflow-hidden text-text bg-background;
 }
 
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  @apply text-lg;
+}
+
 #app {
   @apply h-full flex flex-col;
 }

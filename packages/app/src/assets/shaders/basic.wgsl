@@ -3,43 +3,69 @@ struct VertexIn {
   @location(1) transform1: vec4f,
   @location(2) transform2: vec4f,
   @location(3) transform3: vec4f,
-  @location(4) color: vec4f,
+  @location(4) distance: vec4f,
+  @location(5) fill: vec4f,
+  @location(6) stroke: vec4f,
 }
 
 struct FragmentIn {
   @builtin(position) position: vec4f,
-  @location(0) color: vec4f,
+  @location(0) distance: vec4f,
+  @location(1) fill: vec4f,
+  @location(2) stroke: vec4f,
 }
 
 struct VertexData {
   transform: mat4x4f,
-  color: vec4f,
-};
+  distance: vec4f,
+  fill: vec4f,
+  stroke: vec4f,
+}
+
+struct MaterialData {
+  fill: vec4f,
+  stroke: vec4f,
+  strokeWidth: f32,
+}
 
 struct UniformData {
   projection: mat4x4f,
-};
+}
+
+fn minimum(x: vec4f) -> f32 {
+  return min(min(min(x[0], x[1]), x[2]), x[3]);
+}
+
+fn maximum(x: vec4f) -> f32 {
+  return max(max(max(x[0], x[1]), x[2]), x[3]);
+}
 
 @group(0) @binding(0) var<uniform> uIn: UniformData;
 
-fn fromVertexIn(x: VertexIn) -> VertexData {
+fn fromVertexIn(in: VertexIn) -> VertexData {
   return VertexData(
-    mat4x4f(x.transform0, x.transform1, x.transform2, x.transform3),
-    x.color
+    mat4x4f(in.transform0, in.transform1, in.transform2, in.transform3),
+    in.distance,
+    in.fill,
+    in.stroke
   );
 }
 
-fn transform(x: VertexData) -> VertexData {
+fn transform(in: VertexData) -> VertexData {
   return VertexData(
-    uIn.projection * x.transform,
-    x.color,
+    uIn.projection * in.transform,
+    in.distance,
+    in.fill,
+    in.stroke
   );
 }
 
-fn toFragmentIn(x: VertexData) -> FragmentIn {
+fn toFragmentIn(in: VertexData) -> FragmentIn {
   return FragmentIn(
-    x.transform[0].yzwx,
-    x.color,
+    in.transform[0].yzwx,
+    in.distance,
+    in.fill,
+    in.stroke
   );
 }
 
@@ -50,5 +76,8 @@ fn vertexMain(in: VertexIn) -> FragmentIn {
 
 @fragment
 fn fragmentMain(in: FragmentIn) -> @location(0) vec4f {
-  return in.color;
+  let d = minimum(in.distance);
+  //return in.color;
+  //return vec4f(vec3f(d), 1.0);
+  return mix(in.fill, in.stroke, step(d, 0.1));
 }
