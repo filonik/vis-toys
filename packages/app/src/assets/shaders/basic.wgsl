@@ -28,8 +28,8 @@ struct MaterialData {
   strokeWidth: f32,
 }
 
-struct UniformData {
-  projection: mat4x4f,
+struct CameraData {
+  transform: mat4x4f,
 }
 
 fn minimum(x: vec4f) -> f32 {
@@ -40,7 +40,8 @@ fn maximum(x: vec4f) -> f32 {
   return max(max(max(x[0], x[1]), x[2]), x[3]);
 }
 
-@group(0) @binding(0) var<uniform> uIn: UniformData;
+@group(0) @binding(0) var<uniform> uCamera: CameraData;
+@group(0) @binding(1) var<uniform> uMaterial: MaterialData;
 
 fn fromVertexIn(in: VertexIn) -> VertexData {
   return VertexData(
@@ -53,10 +54,10 @@ fn fromVertexIn(in: VertexIn) -> VertexData {
 
 fn transform(in: VertexData) -> VertexData {
   return VertexData(
-    uIn.projection * in.transform,
+    uCamera.transform * in.transform,
     in.distance,
-    in.fill,
-    in.stroke
+    uMaterial.fill * in.fill,
+    uMaterial.stroke * in.stroke
   );
 }
 
@@ -76,8 +77,41 @@ fn vertexMain(in: VertexIn) -> FragmentIn {
 
 @fragment
 fn fragmentMain(in: FragmentIn) -> @location(0) vec4f {
+  //return vec4f(vec3f(minimum(in.distance)), 1.0);
+  
+  // Fudged
+  /*
   let d = minimum(in.distance);
+  let f = step(d, uMaterial.strokeWidth*0.01);
+  //return vec4f(vec3f(f), 1.0);
+  return mix(in.fill, in.stroke, f);
+  */
+  
+  // Pixel-perfect
+  let d = fwidth(in.distance);
+  let w = smoothstep(
+    d * (2.0*uMaterial.strokeWidth - 0.5),
+    d * (2.0*uMaterial.strokeWidth + 0.5),
+    in.distance
+  );
+  let f = minimum(w);
+  //return vec4f(vec3f(f), 1.0);
+  return mix(in.stroke, in.fill, f);
+  
+  //let f = fwidth(in.distance);
+  //let d = minimum(uMaterial.strokeWidth*f);
+  //let d = minimum(fwidth(in.distance))*0.5;
+
+  /*
+  //let d = minimum(fwidth(in.distance)*0.5);
   //return in.color;
-  //return vec4f(vec3f(d), 1.0);
-  return mix(in.fill, in.stroke, step(d, 0.1));
+  //return vec4f(vec3f(minimum(w)), 1.0);
+  //let w = length(vec2(dpdx(d), dpdy(d)));
+  
+  return mix(
+    in.fill,
+    in.stroke,
+    minimum(w)
+  );
+  */
 }

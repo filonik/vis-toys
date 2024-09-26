@@ -41,14 +41,17 @@ export default function useQuerySource<T>(state: Ref<T>, codecs: AttributeCodecs
   
   const { copy } = useClipboard({ source })
 
+  const update = (value: LocationQuery) => {
+    state.value = {
+      ...state.value,
+      ...iso(value)
+    }
+  }
+
   watch(
     () => route.query,
-    (value) => {
-      state.value = {
-        ...state.value,
-        ...iso(value)
-      }
-    }
+    update,
+    { immediate: true }
   )
 
   return { copy, source }

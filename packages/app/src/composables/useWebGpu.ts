@@ -13,6 +13,7 @@ export type WebGpuState = {
   device: GPUDevice
   context: GPUCanvasContext
   format: GPUTextureFormat
+  display: [number,number]
 }
 
 export type UseWebGpuOptions = {
@@ -42,9 +43,45 @@ export default async function useWebGpu(
 ) {
   let state: WebGpuState | null = null
 
+  const updateDisplaySize = (entry: ResizeObserverEntry) => {
+    let w
+    let h
+    let dpr
+
+    if (entry.devicePixelContentBoxSize) {
+      w = entry.devicePixelContentBoxSize[0].inlineSize
+      h = entry.devicePixelContentBoxSize[0].blockSize
+      dpr = 1
+    } else {
+      w = entry.contentRect.width
+      h = entry.contentRect.height
+      dpr = window.devicePixelRatio
+    }
+
+    state!.display = [Math.round(w * dpr), Math.round(h * dpr)]
+  }
+
+  const resizeCanvasToDisplaySize = (canvas: HTMLCanvasElement) => {
+    const [w, h] = state!.display
+  
+    const needResize = canvas.width !== w || canvas.height !== h;
+  
+    if (needResize) {
+      //console.log("Resize", w, h)
+      canvas.width = w;
+      canvas.height = h;
+    }
+  
+    return needResize;
+  }
+
   const { pause, resume } = useRafFn(
     (args) => {
       if (state) {
+        const canvas = canvasRef.value!
+
+        resizeCanvasToDisplaySize(canvas)
+
         renderer.onRender?.({ ...state, ...args })
       }
     },
@@ -53,6 +90,8 @@ export default async function useWebGpu(
 
   useResizeObserver(canvasRef, (entries) => {
     if (state) {
+      updateDisplaySize(entries[0])
+
       renderer.onResize?.({ ...state, entries })
     }
   })
@@ -119,7 +158,7 @@ export default async function useWebGpu(
 
     context.configure({ device, format, alphaMode })
 
-    state = { adapter, device, context, format }
+    state = { adapter, device, context, format, display: [1920,1080] }
   }
 
   const finalize = () => {

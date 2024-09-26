@@ -15,11 +15,27 @@ import { BasicSimplicialMesh, ParseError, createBuffersAndAttributes } from "@/l
 import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
 import basicShaderCode from '@/assets/shaders/basic.wgsl?raw'
 
+import {mat4} from 'wgpu-matrix'
 import * as wgh from 'webgpu-utils'
 
 import * as A from "@/lib/arrays"
 import * as T from "@/lib/tensors"
 import * as S from "@/lib/strings"
+
+const mymat4 = {
+  translate(m: ArrayLike<number>, v: ArrayLike<number>, r: Float32Array): Float32Array {
+    r[1*1+0*4] = m[1*1+0*4] + v[0]
+    r[2*1+0*4] = m[2*1+0*4] + v[1]
+    r[3*1+0*4] = m[3*1+0*4] + v[2]
+    return r
+  },
+  scale(m: ArrayLike<number>, v: ArrayLike<number>, r: Float32Array): Float32Array {
+    r[1*1+1*4] = m[1*1+1*4] * v[0]
+    r[2*1+2*4] = m[2*1+2*4] * v[1]
+    r[3*1+3*4] = m[3*1+3*4] * v[2]
+    return r
+  }
+}
 
 const stringToJson = S.stringToJson5({space: 2})
 
@@ -53,7 +69,8 @@ const meshRef = ref<BasicSimplicialMesh | null>(null)
 type RendererState = Record<number, {
   pipeline: GPURenderPipeline
   bindGroup: GPUBindGroup
-  uniformBuffer: GPUBuffer
+  camera: GPUBuffer
+  material: GPUBuffer
 }>
 
 type MeshState = {
@@ -102,13 +119,30 @@ const mesh: WebGpuResource & {valid: boolean} = {
     
     if(!meshState) return
 
+    // TODO: Destroy buffers
+
     meshState = null
   }
 }
 
-const uniformValues = {
-  data: Float32Array.from(T.lmat.toEager(T.lmat.I())(4,4).flat(1))
+const transforms = {
+  camera: mat4.identity(),
 }
+
+const defs = wgh.makeShaderDataDefinitions(basicShaderCode);
+
+const uCamera = wgh.makeStructuredView(defs.uniforms.uCamera);
+const uMaterial = wgh.makeStructuredView(defs.uniforms.uMaterial);
+
+uCamera.set({
+  transform: mat4.identity(),
+})
+
+uMaterial.set({
+  fill: [1,1,1,1],
+  stroke: [1,1,1,1],
+  strokeWidth: 10.0,
+})
 
 const renderer: WebGpuResource = {
   onCreate(args) {
@@ -128,9 +162,12 @@ const renderer: WebGpuResource = {
       code: basicShaderCode
     })
 
-    const uniformBuffer = device.createBuffer({
-      label: 'uniforms',
-      size: uniformValues.data.byteLength,
+    const camera = device.createBuffer({
+      size: uCamera.arrayBuffer.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    const material = device.createBuffer({
+      size: uMaterial.arrayBuffer.byteLength,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
@@ -154,29 +191,20 @@ const renderer: WebGpuResource = {
       })
 
       const bindGroup = device.createBindGroup({
-        label: 'bind group for object',
         layout: pipeline.getBindGroupLayout(0),
         entries: [
-          { binding: 0, resource: { buffer: uniformBuffer }},
+          { binding: 0, resource: { buffer: camera } },
+          { binding: 1, resource: { buffer: material } },
         ],
       })
 
-      return [key, {pipeline, bindGroup, uniformBuffer}]
+      return [key, {pipeline, bindGroup, camera, material }]
     }))
 
     //console.log(rendererState)
   },
-  onResize({ entries }) {
-    /*
-    const {width, height} = entries[0].contentRect
-    const aspect = Math.min(width, height)
-    displayValues.set([1,1], aspect/width)
-    displayValues.set([2,2], aspect/height)
-    */
-    //console.log("onResize", displayValues)
-  },
   onRender(args) {
-    const {device, context} = args
+    const {device, context, display} = args
 
     if (!rendererState) return
 
@@ -199,9 +227,15 @@ const renderer: WebGpuResource = {
       ]
     })
 
-    const {pipeline, bindGroup, uniformBuffer} = rendererState[meshState.topology]
+    //pass.setViewport(0, 0, display[0], display[1], 0, 1)
 
-    device.queue.writeBuffer(uniformBuffer, 0, uniformValues.data);
+    const {pipeline, bindGroup, camera, material} = rendererState[meshState.topology]
+
+    const aspect = Math.min(...display)
+    mat4.mul(mat4.scaling([1, aspect/display[0], aspect/display[1]]), transforms.camera, uCamera.views.transform)
+
+    device.queue.writeBuffer(camera, 0, uCamera.arrayBuffer);
+    device.queue.writeBuffer(material, 0, uMaterial.arrayBuffer);
 
     pass.setPipeline(pipeline)
     pass.setBindGroup(0, bindGroup)
@@ -233,7 +267,7 @@ const listeners: HTMLElementEventListenerMap = {
     console.log(event)
   },
   keyup: (event: KeyboardEvent) => {
-    const delta = [0,0]
+    const delta = [0,0,0]
 
     switch (event.key) {
       case 'ArrowLeft':
@@ -250,14 +284,12 @@ const listeners: HTMLElementEventListenerMap = {
         break
     }
 
-    //const step = event.shiftKey? 0.5: 0.05
-    //cameraValues.set([1,0], cameraValues.get([1,0])+delta[0]*step)
-    //cameraValues.set([2,0], cameraValues.get([2,0])+delta[1]*step)
+    const step = event.shiftKey? 0.5: 0.05
+    mymat4.translate(transforms.camera, [delta[0]*step, delta[1]*step, delta[2]*step], transforms.camera)
   },
   wheel: (event: WheelEvent) => {
-    //const scale = 1.0 + event.deltaY/100.0
-    //cameraValues.set([1,1], cameraValues.get([1,1])*scale)
-    //cameraValues.set([2,2], cameraValues.get([2,2])*scale)
+    const scale = 1.0 + event.deltaY/100.0
+    mymat4.scale(transforms.camera, [scale, scale, 1], transforms.camera)
   }
 }
 
