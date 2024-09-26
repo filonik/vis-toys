@@ -23,12 +23,14 @@ export type UseWebGpuOptions = {
 export type CreateArguments = WebGpuState
 export type ResizeArguments = WebGpuState & {entries: readonly ResizeObserverEntry[]}
 export type RenderArguments = WebGpuState & UseRafFnCallbackArguments
+export type UpdateArguments = WebGpuState
 export type DeleteArguments = WebGpuState
 
 export interface WebGpuResource {
   onCreate?(args: CreateArguments): void
   onResize?(args: ResizeArguments): void
   onRender?(args: RenderArguments): void
+  onUpdate?(args: UpdateArguments): void
   onDelete?(args: DeleteArguments): void
 }
 

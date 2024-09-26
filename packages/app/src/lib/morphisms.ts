@@ -1,25 +1,18 @@
-export type Maybe<T> = T | undefined
+import * as F from "@/lib/functors"
 
 export type Morphism<S, T> = (value: S) => T
 export type Endomorphism<T> = Morphism<T, T>
 export type Isomorphism<S,T> = Morphism<S, T> & { inv: Isomorphism<T, S> }
 
-export type MaybeType = {
-  map<S,T>(f: Morphism<S,T>): Morphism<Maybe<S>, Maybe<T>>
-}
-
-export const maybe: MaybeType = {
-  map: <S,T>(f: Morphism<S,T>) => (value: Maybe<S>) => value !== undefined? f(value): undefined
-}
-
 export type IsomorphismType = {
   <S,T>(f: Morphism<S, T>, g: Morphism<T, S>): Isomorphism<S,T>
   compose<S,T,U>(f: Isomorphism<S,T>, g:Isomorphism<T,U>): Isomorphism<S,U>
   inverse<S,T>(f: Isomorphism<S,T>): Isomorphism<T,S>
-  maybe<S,T>(i: Isomorphism<S,T>): Isomorphism<Maybe<S>,Maybe<T>>
+  maybe<S,T>(i: Isomorphism<S,T>): Isomorphism<F.Maybe<S>,F.Maybe<T>>
 }
 
 export const identity: <T>() => Endomorphism<T> = () => (value) => value
+export const constant: <S,T>(value: T) => Morphism<S,T> = (value) => () => value
 export const compose: <S,T,U>(f: Morphism<S, T>, g: Morphism<T, U>) => Morphism<S, U> = (f, g) => (value) => g(f(value))
 
 export const iso: IsomorphismType = (f, g) => {
@@ -32,7 +25,7 @@ export const iso: IsomorphismType = (f, g) => {
 
 iso.compose = (f, g) => iso(compose(f, g), compose(g.inv, f.inv))
 iso.inverse = (i) => iso(i.inv, i)
-iso.maybe = (i) => iso(maybe.map(i), maybe.map(i.inv))
+iso.maybe = (i) => iso(F.maybe.map(i), F.maybe.map(i.inv))
 
 /*
 type MapIsomorphism<S, T> = {
