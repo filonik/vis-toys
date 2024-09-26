@@ -22,9 +22,22 @@ export const StringCodec: AttributeCodec<string> = iso(
 
 export const Base64UrlCodec: AttributeCodec<string> = iso.compose(StringCodec, iso.maybe(base64UrlToString))
 
+export const isDefined: (v: any) => boolean = (v) => v !== null && v !== undefined
+export const mapAndFilterValues: (f: (value: any, key?: any) => any, g: (value: any, key?: any) => boolean) => (value: any) => any = (f,g) => (value) => Object.fromEntries(
+  Object.entries(value)
+    .map(([k, v]) => [k, f(v, k)])
+    .filter(([k, v]) => g(v, k))
+)
+
+// TODO: This is still wonky...
+// S <~Codec~> T
+// mapAndFilterValues((v, k) => v(value[k]), isDefined)(codecs)
+// vs
+// mapAndFilterValues((v, k) => codecs[k](v), isDefined)(value)
+// ?
 export const queryToState: <T>(codecs: AttributeCodecs<T>) => Isomorphism<LocationQuery, Partial<T>> = (codecs) => iso(
-  (value) => Object.fromEntries(Object.entries(codecs).map(([k, v])=> [k, (v as any)(value[k])])) as any,
-  (value) => Object.fromEntries(Object.entries(codecs).map(([k, v])=> [k, (v as any).inv(value[k])])) as any,
+ (value) => mapAndFilterValues((v, k) => v(value[k]), isDefined)(codecs),
+ (value) => mapAndFilterValues((v, k) => v.inv(value[k]), isDefined)(codecs),
 )
 
 export default function useQuerySource<T>(state: Ref<T>, codecs: AttributeCodecs<T>) {
