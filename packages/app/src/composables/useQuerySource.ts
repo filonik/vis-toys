@@ -5,7 +5,9 @@ import { useRoute, stringifyQuery } from "vue-router"
 
 import { useClipboard } from '@vueuse/core'
 
-import type { Isomorphism, Maybe } from '@/lib/morphisms'
+import type { Maybe } from '@/lib/functors'
+import type { Isomorphism } from '@/lib/morphisms'
+
 import { unArray } from "@/lib/arrays"
 import { iso } from "@/lib/morphisms"
 import { base64UrlToString } from "@/lib/strings"
