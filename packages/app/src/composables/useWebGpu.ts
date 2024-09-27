@@ -19,6 +19,7 @@ export type WebGpuState = {
 export type UseWebGpuOptions = {
   alphaMode?: GPUCanvasAlphaMode
   format?: GPUTextureFormat
+  autoResize?: boolean
 }
 
 export type CreateArguments = WebGpuState
@@ -43,7 +44,7 @@ export default async function useWebGpu(
 ) {
   let state: WebGpuState | null = null
 
-  const updateDisplaySize = (entry: ResizeObserverEntry) => {
+  const getDisplaySize: (entry: ResizeObserverEntry) => [number,number] = (entry) => {
     let w
     let h
     let dpr
@@ -58,30 +59,30 @@ export default async function useWebGpu(
       dpr = window.devicePixelRatio
     }
 
-    state!.display = [Math.round(w * dpr), Math.round(h * dpr)]
+    return [Math.round(w * dpr), Math.round(h * dpr)]
   }
 
-  const resizeCanvasToDisplaySize = (canvas: HTMLCanvasElement) => {
-    const [w, h] = state!.display
+  const resizeCanvas = (canvas: HTMLCanvasElement, size: [number,number]) => {
+    const [w, h] = size
   
-    const needResize = canvas.width !== w || canvas.height !== h;
+    const needsResize = canvas.width !== w || canvas.height !== h;
   
-    if (needResize) {
+    if (needsResize) {
       //console.log("Resize", w, h)
-      canvas.width = w;
-      canvas.height = h;
+      canvas.width = w
+      canvas.height = h
     }
   
-    return needResize;
+    return needsResize
   }
 
   const { pause, resume } = useRafFn(
     (args) => {
       if (state) {
-        const canvas = canvasRef.value!
-
-        resizeCanvasToDisplaySize(canvas)
-
+        if (options.autoResize) {
+          const canvas = canvasRef.value
+          resizeCanvas(canvas!, state.display)
+        }
         renderer.onRender?.({ ...state, ...args })
       }
     },
@@ -90,7 +91,7 @@ export default async function useWebGpu(
 
   useResizeObserver(canvasRef, (entries) => {
     if (state) {
-      updateDisplaySize(entries[0])
+      state.display = getDisplaySize(entries[0])
 
       renderer.onResize?.({ ...state, entries })
     }
@@ -158,7 +159,9 @@ export default async function useWebGpu(
 
     context.configure({ device, format, alphaMode })
 
-    state = { adapter, device, context, format, display: [1920,1080] }
+    const {width, height} = canvas.getBoundingClientRect()
+
+    state = { adapter, device, context, format, display: [width, height] }
   }
 
   const finalize = () => {

@@ -84,6 +84,7 @@ let meshState: MeshState | null = null
 
 const options: UseWebGpuOptions = {
   alphaMode: 'premultiplied',
+  autoResize: true,
 }
 
 const mesh: WebGpuResource & {valid: boolean} = {
@@ -141,7 +142,7 @@ uCamera.set({
 uMaterial.set({
   fill: [1,1,1,1],
   stroke: [1,1,1,1],
-  strokeWidth: 10.0,
+  strokeWidth: 10.0, //5.0,
 })
 
 const renderer: WebGpuResource = {

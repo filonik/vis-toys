@@ -75,43 +75,75 @@ fn vertexMain(in: VertexIn) -> FragmentIn {
   return toFragmentIn(transform(fromVertexIn(in)));
 }
 
-@fragment
-fn fragmentMain(in: FragmentIn) -> @location(0) vec4f {
-  //return vec4f(vec3f(minimum(in.distance)), 1.0);
-  
-  // Fudged
-  /*
-  let d = minimum(in.distance);
-  let f = step(d, uMaterial.strokeWidth*0.01);
-  //return vec4f(vec3f(f), 1.0);
-  return mix(in.fill, in.stroke, f);
-  */
-  
-  // Pixel-perfect
-  let d = fwidth(in.distance);
+// Original
+// See: https://github.com/rreusser/glsl-solid-wireframe
+/*
+fn strokeScaled(distance: vec4f) -> f32 {
+  let d = fwidth(distance);
   let w = smoothstep(
     d * (2.0*uMaterial.strokeWidth - 0.5),
     d * (2.0*uMaterial.strokeWidth + 0.5),
-    in.distance
+    distance
   );
-  let f = minimum(w);
-  //return vec4f(vec3f(f), 1.0);
-  return mix(in.stroke, in.fill, f);
-  
-  //let f = fwidth(in.distance);
-  //let d = minimum(uMaterial.strokeWidth*f);
-  //let d = minimum(fwidth(in.distance))*0.5;
+  return minimum(w);
+}
+*/
 
-  /*
-  //let d = minimum(fwidth(in.distance)*0.5);
-  //return in.color;
-  //return vec4f(vec3f(minimum(w)), 1.0);
-  //let w = length(vec2(dpdx(d), dpdy(d)));
-  
-  return mix(
-    in.fill,
-    in.stroke,
-    minimum(w)
+fn distanceUnscaled(value: vec4f) -> f32 {
+  return minimum(value);
+}
+
+fn distanceScaled(value: vec4f) -> f32 {
+  return minimum(value/fwidth(value));
+}
+
+// Alternative to fwidth?
+//let w = length(vec2(dpdx(d), dpdy(d)));
+
+// Hard/Step
+fn strokeUnscaled(distance: vec4f) -> f32 {
+  let d = minimum(distance);
+  let f = 1.0 - step(d, uMaterial.strokeWidth);
+  return f;
+}
+
+fn strokeScaled(distance: vec4f) -> f32 {
+  let d = minimum(distance/fwidth(distance));
+  let f = 1.0 - step(d, uMaterial.strokeWidth);
+  return f;
+}
+
+// Soft/Smoothstep
+/*
+fn strokeUnscaled(distance: vec4f) -> f32 {
+  let d = minimum(distance);
+  let f = smoothstep(
+    2.0*uMaterial.strokeWidth - 0.5,
+    2.0*uMaterial.strokeWidth + 0.5,
+    d*100.0
   );
-  */
+  return f;
+}
+
+fn strokeScaled(distance: vec4f) -> f32 {
+  let d = minimum(distance/fwidth(distance));
+  let f = smoothstep(
+    2.0*uMaterial.strokeWidth - 0.5,
+    2.0*uMaterial.strokeWidth + 0.5,
+    d
+  );
+  return f;
+}
+*/
+
+@fragment
+fn fragmentMain(in: FragmentIn) -> @location(0) vec4f {
+  //return in.fill;
+  //return in.stroke;
+  //return vec4f(vec3f(distanceUnscaled(in.distance)), 1.0);
+  //return vec4f(vec3f(distanceScaled(in.distance)), 1.0);
+  
+  // Scaled
+  return mix(in.stroke, in.fill, strokeScaled(in.distance));
+  //return mix(in.stroke, in.fill, strokeUnscaled(in.distance));
 }
