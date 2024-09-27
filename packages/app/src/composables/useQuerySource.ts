@@ -8,36 +8,30 @@ import { useClipboard } from '@vueuse/core'
 import type { Maybe } from '@/lib/functors'
 import type { Isomorphism } from '@/lib/morphisms'
 
-import { unArray } from "@/lib/arrays"
-import { iso } from "@/lib/morphisms"
-import { base64UrlToString } from "@/lib/strings"
+import * as A from "@/lib/arrays"
+import * as M from "@/lib/morphisms"
+import * as O from "@/lib/objects"
+import * as S from "@/lib/strings"
 
 type AttributeCodec<T> = Isomorphism<LocationQueryValue | LocationQueryValue[], Maybe<T>>
 type AttributeCodecs<T> = {[K in keyof T]: AttributeCodec<T[K]>}
 
-export const StringCodec: AttributeCodec<string> = iso(
-  (value) => unArray(value) ?? undefined,
+export const StringCodec: AttributeCodec<string> = M.iso(
+  (value) => A.unArray(value) ?? undefined,
   (value) => value ?? null
 )
 
-export const Base64UrlCodec: AttributeCodec<string> = iso.compose(StringCodec, iso.maybe(base64UrlToString))
-
-export const isDefined: (v: any) => boolean = (v) => v !== null && v !== undefined
-export const mapAndFilterValues: (f: (value: any, key?: any) => any, g: (value: any, key?: any) => boolean) => (value: any) => any = (f,g) => (value) => Object.fromEntries(
-  Object.entries(value)
-    .map(([k, v]) => [k, f(v, k)])
-    .filter(([k, v]) => g(v, k))
-)
+export const Base64UrlCodec: AttributeCodec<string> = M.iso.compose(StringCodec, M.iso.maybe(S.base64UrlToString))
 
 // TODO: This is still wonky...
 // S <~Codec~> T
-// mapAndFilterValues((v, k) => v(value[k]), isDefined)(codecs)
+// O.mapValues((v, k) => v(value[k]))(codecs)
 // vs
-// mapAndFilterValues((v, k) => codecs[k](v), isDefined)(value)
+// O.mapValues((v, k) => codecs[k](v))(value)
 // ?
-export const queryToState: <T>(codecs: AttributeCodecs<T>) => Isomorphism<LocationQuery, Partial<T>> = (codecs) => iso(
- (value) => mapAndFilterValues((v, k) => v(value[k]), isDefined)(codecs),
- (value) => mapAndFilterValues((v, k) => v.inv(value[k]), isDefined)(codecs),
+export const queryToState: <T>(codecs: AttributeCodecs<T>) => Isomorphism<LocationQuery, Partial<T>> = (codecs) => M.iso(
+ (value) => O.mapValues((v, k) => v(value[k]))(codecs),
+ (value) => O.mapValues((v, k) => v.inv(value[k]))(codecs),
 )
 
 export default function useQuerySource<T>(state: Ref<T>, codecs: AttributeCodecs<T>) {
@@ -54,16 +48,11 @@ export default function useQuerySource<T>(state: Ref<T>, codecs: AttributeCodecs
   
   const { copy } = useClipboard({ source })
 
-  const update = (value: LocationQuery) => {
-    state.value = {
-      ...state.value,
-      ...iso(value)
-    }
-  }
-
   watch(
     () => route.query,
-    update,
+    (value) => {
+      state.value = O.merge(state.value, iso(value))
+    },
     { immediate: true }
   )
 
