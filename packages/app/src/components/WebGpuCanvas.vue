@@ -24,7 +24,7 @@ await useWebGpu(canvasRef, props.renderer, props.listeners, props.options)
 </script>
 
 <template>
-  <canvas ref="canvasRef" :width="width" :height="height" tabindex="1"></canvas>
+  <canvas ref="canvasRef" class="cursor-default focus:outline-none focus:ring focus:ring-inset focus:ring-border-hover" :width="width" :height="height" contenteditable="true" tabindex="1"></canvas>
 </template>
 
 <style scoped>

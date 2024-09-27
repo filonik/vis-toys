@@ -263,6 +263,11 @@ const renderer: WebGpuResource = {
   }
 }
 
+const keyboardState = null
+const pointerState = {
+  down: false
+}
+
 const listeners: HTMLElementEventListenerMap = {
   keydown: (event: KeyboardEvent) => {
     console.log(event)
@@ -287,6 +292,26 @@ const listeners: HTMLElementEventListenerMap = {
 
     const step = event.shiftKey? 0.5: 0.05
     mymat4.translate(transforms.camera, [delta[0]*step, delta[1]*step, delta[2]*step], transforms.camera)
+  },
+  pointerdown: (event: PointerEvent) => {
+    pointerState.down = true
+    const canvas = event.target as HTMLCanvasElement
+    canvas.setPointerCapture(event.pointerId)
+  },
+  pointermove: (event: PointerEvent) => {
+    if (!pointerState.down) return;
+    const canvas = event.target as HTMLCanvasElement
+    const display = [canvas.width, canvas.height]
+    const aspect = Math.min(...display)
+    const delta = [
+      +event.movementX * 4.0/aspect,
+      -event.movementY * 4.0/aspect,
+      0
+    ]
+    mymat4.translate(transforms.camera, [delta[0], delta[1], delta[2]], transforms.camera)
+  },
+  pointerup: (event: PointerEvent) => {
+    pointerState.down = false
   },
   wheel: (event: WheelEvent) => {
     const scale = 1.0 + event.deltaY/100.0
