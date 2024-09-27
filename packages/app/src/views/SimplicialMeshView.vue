@@ -4,7 +4,7 @@ import { useEventListener, toReactive } from '@vueuse/core';
 
 import { ArrowUpOnSquareIcon } from '@heroicons/vue/24/outline'
 
-import useQuerySource, { Base64UrlCodec } from "@/composables/useQuerySource"
+import useQueryState, { Base64UrlCodec } from "@/composables/useQueryState"
 
 import CodeEditor from '@/components/CodeEditor.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
@@ -15,10 +15,12 @@ import { BasicSimplicialMesh, ParseError, createBuffersAndAttributes } from "@/l
 import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
 import basicShaderCode from '@/assets/shaders/basic.wgsl?raw'
 
+import chroma from "chroma-js"
 import {mat4} from 'wgpu-matrix'
 import * as wgh from 'webgpu-utils'
 
 import * as A from "@/lib/arrays"
+import * as M from "@/lib/morphisms"
 import * as T from "@/lib/tensors"
 import * as S from "@/lib/strings"
 
@@ -37,7 +39,7 @@ const mymat4 = {
   }
 }
 
-const stringToJson = S.stringToJson5({space: 2})
+const stringToJson = M.iso.maybe(S.stringToJson5())
 
 const PRIMITIVES: Record<number, GPUPrimitiveTopology> = {
   0: 'point-list',
@@ -58,10 +60,20 @@ const DEFAULT_SOURCE = `{
 
 type State = {
   source: string
+  material: {
+    fill: string
+    stroke: string
+    strokeWidth: number
+  }
 }
 
 const stateRef = ref<State>({
   source: DEFAULT_SOURCE,
+  material: {
+    fill: "#ffffff",
+    stroke: "#888888",
+    strokeWidth: 20.0,
+  }
 })
 
 const meshRef = ref<BasicSimplicialMesh | null>(null)
@@ -235,6 +247,12 @@ const renderer: WebGpuResource = {
     const aspect = Math.min(...display)
     mat4.mul(mat4.scaling([1, aspect/display[0], aspect/display[1]]), transforms.camera, uCamera.views.transform)
 
+    uMaterial.set({
+      fill: chroma(state.material.fill).gl(),
+      stroke: chroma(state.material.stroke).gl(),
+      strokeWidth: state.material.strokeWidth,
+    })
+
     device.queue.writeBuffer(camera, 0, uCamera.arrayBuffer);
     device.queue.writeBuffer(material, 0, uMaterial.arrayBuffer);
 
@@ -321,9 +339,10 @@ const listeners: HTMLElementEventListenerMap = {
 
 const state = toReactive(stateRef)
 
-const { copy } = useQuerySource(stateRef, {
-  source: Base64UrlCodec
-})
+const { copy } = useQueryState(stateRef, M.iso(
+  ({ state }) => stringToJson(Base64UrlCodec(state)),
+  (value) => ({ state: Base64UrlCodec.inv(stringToJson.inv(value)) }),
+))
 
 const save = (state: State) => {
   try {
@@ -377,11 +396,26 @@ save(state)
     </button>
     <ToggleDarkButton/>
   </header>
-  <main class="h-full grid grid-rows-2 grid-cols-none md:grid-rows-none md:grid-cols-2">
-    <CodeEditor v-model="state.source"/>
+  <main class="h-full grid grid-rows-3 grid-cols-none md:grid-rows-2 md:grid-cols-2">
+    <CodeEditor class="border-b-2 border-border md:row-span-2" v-model="state.source"/>
     <Suspense>
-      <WebGpuCanvas class="h-full w-full" :renderer :listeners :options/>
+      <WebGpuCanvas class="h-full w-full border-b-2 border-border" :renderer :listeners :options/>
     </Suspense>
+    <div class="flex flex-col p-2 border-b-2 border-border">
+      <h2>Material</h2>
+      <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
+        <label class="w-12 text-right" for="fill">Fill:</label>
+        <input class="w-16" name="fill" type="color" v-model="state.material.fill"/>
+      </div>
+      <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
+        <label class="w-12 text-right" for="stroke">Stroke:</label>
+        <input class="w-16" name="stroke" type="color" v-model="state.material.stroke"/>
+      </div>
+      <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
+        <label class="w-12 text-right" for="strokeWidth">Width:</label>
+        <input class="w-16" name="strokeWidth" type="number" v-model="state.material.strokeWidth"/>
+      </div>
+    </div>
   </main>
 </template>
 

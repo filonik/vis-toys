@@ -37,6 +37,14 @@ h1 {
   @apply text-lg;
 }
 
+input {
+  @apply text-text bg-background-mute border border-border;
+}
+
+label {
+  @apply text-xs;
+}
+
 #app {
   @apply h-full flex flex-col;
 }

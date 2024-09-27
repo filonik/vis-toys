@@ -34,7 +34,7 @@ export const queryToState: <T>(codecs: AttributeCodecs<T>) => Isomorphism<Locati
  (value) => O.mapValues((v, k) => v.inv(value[k]))(codecs),
 )
 
-export default function useQuerySource<T>(state: Ref<T>, codecs: AttributeCodecs<T>) {
+export function useQuerySource<T>(state: Ref<T>, codecs: AttributeCodecs<T>) {
   const route = useRoute()
 
   const iso = queryToState(codecs)
@@ -52,6 +52,32 @@ export default function useQuerySource<T>(state: Ref<T>, codecs: AttributeCodecs
     () => route.query,
     (value) => {
       state.value = O.merge(state.value, iso(value))
+    },
+    { immediate: true }
+  )
+
+  return { copy, source }
+}
+
+export default function useQueryState<T>(state: Ref<T>, iso: Isomorphism<LocationQuery, Partial<T>>) {
+  const route = useRoute()
+
+  const source = computed(() => {
+    const origin = window.location.origin
+    const baseUrl = window.location.pathname
+    const query = iso.inv(state.value)
+    return origin + baseUrl + "#" + route.path + "?" + stringifyQuery(query)
+  })
+  
+  const { copy } = useClipboard({ source })
+
+  watch(
+    () => route.query,
+    (value) => {
+      const newValue = iso(value)
+      if(newValue) {
+        state.value = O.merge(state.value, newValue)
+      }
     },
     { immediate: true }
   )
