@@ -45,6 +45,11 @@ type LazyTensorType = {
   set<T>(value: LazyTensor<T>, newValue: LazyTensor<F.Maybe<T>>): LazyTensor<T>
   ones(): LazyTensor<number>
   zeros(): LazyTensor<number>
+  map<S,T>(f: F.Morphism<S,T>): F.Morphism<LazyTensor<S>,LazyTensor<T>>
+  //add(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+  //sub(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+  //mul(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+  //div(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
 }
 
 function isScalar<T>(value: any): value is T {
@@ -66,6 +71,9 @@ export const ltensor: LazyTensorType = {
   },
   set(value, newValue) {
     return (...indices) => newValue(...indices) ?? value(...indices)
+  },
+  map(f) {
+    return (value) => (...indices) => f(value(...indices))
   }
 }
 
@@ -123,5 +131,40 @@ export const lmat: LazyMatrixType = {
   },
   toEager(value) {
     return (m, n) => A.from((i) => A.from((j) => value(i,j), m), n)
+  }
+}
+
+// Adapt to our layout...
+import {mat4, type BaseArgType} from 'wgpu-matrix'
+
+export const mat4f = {
+  ...mat4,
+  translation(v: ArrayLike<number>, dst?: BaseArgType): BaseArgType {
+    dst = dst ?? mat4.identity()
+    dst[1*1+0*4] = v[0]
+    dst[2*1+0*4] = v[1]
+    dst[3*1+0*4] = v[2]
+    return dst
+  },
+  translate(m: ArrayLike<number>, v: ArrayLike<number>, dst?: BaseArgType): BaseArgType {
+    dst = dst ?? mat4.identity()
+    dst[1*1+0*4] = m[1*1+0*4] + v[0]
+    dst[2*1+0*4] = m[2*1+0*4] + v[1]
+    dst[3*1+0*4] = m[3*1+0*4] + v[2]
+    return dst
+  },
+  scaling(v: ArrayLike<number>, dst?: BaseArgType): BaseArgType {
+    dst = dst ?? mat4.identity()
+    dst[1*1+1*4] = v[0]
+    dst[2*1+2*4] = v[1]
+    dst[3*1+3*4] = v[2]
+    return dst
+  },
+  scale(m: ArrayLike<number>, v: ArrayLike<number>, dst?: BaseArgType): BaseArgType {
+    dst = dst ?? mat4.identity()
+    dst[1*1+1*4] = m[1*1+1*4] * v[0]
+    dst[2*1+2*4] = m[2*1+2*4] * v[1]
+    dst[3*1+3*4] = m[3*1+3*4] * v[2]
+    return dst
   }
 }

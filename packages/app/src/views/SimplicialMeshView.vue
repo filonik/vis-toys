@@ -10,13 +10,12 @@ import CodeEditor from '@/components/CodeEditor.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 import ToggleDarkButton from '@/components/ToggleDarkButton.vue'
 
-import { BasicSimplicialMesh, ParseError, createBuffersAndAttributes } from "@/lib/loaders/meshes"
+import { BasicSimplicialMesh, ParseError, createBuffersAndAttributes, PRIMITIVES } from "@/lib/loaders/meshes"
 
 import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
 import basicShaderCode from '@/assets/shaders/basic.wgsl?raw'
 
 import chroma from "chroma-js"
-import {mat4} from 'wgpu-matrix'
 import * as wgh from 'webgpu-utils'
 
 import * as A from "@/lib/arrays"
@@ -24,36 +23,17 @@ import * as M from "@/lib/morphisms"
 import * as T from "@/lib/tensors"
 import * as S from "@/lib/strings"
 
-const mymat4 = {
-  translate(m: ArrayLike<number>, v: ArrayLike<number>, r: Float32Array): Float32Array {
-    r[1*1+0*4] = m[1*1+0*4] + v[0]
-    r[2*1+0*4] = m[2*1+0*4] + v[1]
-    r[3*1+0*4] = m[3*1+0*4] + v[2]
-    return r
-  },
-  scale(m: ArrayLike<number>, v: ArrayLike<number>, r: Float32Array): Float32Array {
-    r[1*1+1*4] = m[1*1+1*4] * v[0]
-    r[2*1+2*4] = m[2*1+2*4] * v[1]
-    r[3*1+3*4] = m[3*1+3*4] * v[2]
-    return r
-  }
-}
+import { mat4f } from "@/lib/tensors"
 
 const stringToJson = M.iso.maybe(S.stringToJson5())
-
-const PRIMITIVES: Record<number, GPUPrimitiveTopology> = {
-  0: 'point-list',
-  1: 'line-list',
-  2: 'triangle-list',
-}
 
 const DEFAULT_SOURCE = `{
   "primitive": 2,
   "vertices": [
-    {"position": [-0.5, -0.5], "distance": [1,0,0,1], "fill": "red", "stroke": "yellow"},
-    {"position": [-0.5, 0.5], "distance": [1,1,0,0], "fill": "green", "stroke": "blue"},
-    {"position": [0.5, -0.5], "distance": [0,0,1,1], "fill": "blue", "stroke": "green"},
-    {"position": [0.5, 0.5], "distance": [0,1,1,0], "fill": "yellow", "stroke": "red"}
+    {"position": [-1, -1], "distance": [1,0,0,1], "fill": "red", "stroke": "yellow"},
+    {"position": [-1, 1], "distance": [1,1,0,0], "fill": "green", "stroke": "blue"},
+    {"position": [1, -1], "distance": [0,0,1,1], "fill": "blue", "stroke": "green"},
+    {"position": [1, 1], "distance": [0,1,1,0], "fill": "yellow", "stroke": "red"}
   ],
   "indices": [0, 1, 2, 1, 2, 3]
 }`
@@ -139,7 +119,8 @@ const mesh: WebGpuResource & {valid: boolean} = {
 }
 
 const transforms = {
-  camera: mat4.identity(),
+  //camera: mat4f.identity(),
+  camera: mat4f.scaling([0.5,0.5,0.5]),
 }
 
 const defs = wgh.makeShaderDataDefinitions(basicShaderCode);
@@ -148,7 +129,7 @@ const uCamera = wgh.makeStructuredView(defs.uniforms.uCamera);
 const uMaterial = wgh.makeStructuredView(defs.uniforms.uMaterial);
 
 uCamera.set({
-  transform: mat4.identity(),
+  transform: mat4f.identity(),
 })
 
 uMaterial.set({
@@ -156,6 +137,16 @@ uMaterial.set({
   stroke: [1,1,1,1],
   strokeWidth: 10.0, //5.0,
 })
+
+const scaleToFitContain = (display: [number, number]) => {
+  const aspect = Math.min(...display)
+  return mat4f.scaling([aspect/display[0], aspect/display[1], 1])
+}
+
+const scaleToFitCover = (display: [number, number]) => {
+  const aspect = Math.max(...display)
+  return mat4f.scaling([aspect/display[0], aspect/display[1], 1])
+}
 
 const renderer: WebGpuResource = {
   onCreate(args) {
@@ -244,8 +235,8 @@ const renderer: WebGpuResource = {
 
     const {pipeline, bindGroup, camera, material} = rendererState[meshState.topology]
 
-    const aspect = Math.min(...display)
-    mat4.mul(mat4.scaling([1, aspect/display[0], aspect/display[1]]), transforms.camera, uCamera.views.transform)
+    const displayTransform = scaleToFitContain(display)
+    mat4f.mul(displayTransform, transforms.camera, uCamera.views.transform)
 
     uMaterial.set({
       fill: chroma(state.material.fill).gl(),
@@ -309,7 +300,7 @@ const listeners: HTMLElementEventListenerMap = {
     }
 
     const step = event.shiftKey? 0.5: 0.05
-    mymat4.translate(transforms.camera, [delta[0]*step, delta[1]*step, delta[2]*step], transforms.camera)
+    mat4f.translate(transforms.camera, [delta[0]*step, delta[1]*step, delta[2]*step], transforms.camera)
   },
   pointerdown: (event: PointerEvent) => {
     pointerState.down = true
@@ -326,14 +317,14 @@ const listeners: HTMLElementEventListenerMap = {
       -event.movementY * 4.0/aspect,
       0
     ]
-    mymat4.translate(transforms.camera, [delta[0], delta[1], delta[2]], transforms.camera)
+    mat4f.translate(transforms.camera, [delta[0], delta[1], delta[2]], transforms.camera)
   },
   pointerup: (event: PointerEvent) => {
     pointerState.down = false
   },
   wheel: (event: WheelEvent) => {
     const scale = 1.0 + event.deltaY/100.0
-    mymat4.scale(transforms.camera, [scale, scale, 1], transforms.camera)
+    mat4f.scale(transforms.camera, [scale, scale, 1], transforms.camera)
   }
 }
 

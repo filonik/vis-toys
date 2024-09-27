@@ -10,6 +10,12 @@ import * as T from "@/lib/tensors"
 export type ParseError = z.ZodError
 export const ParseError = z.ZodError
 
+export const PRIMITIVES: Record<number, GPUPrimitiveTopology> = {
+  0: 'point-list',
+  1: 'line-list',
+  2: 'triangle-list',
+}
+
 const Scalar = z.number()
 const Vector = z.array(z.number())
 const Matrix = z.array(z.array(z.number()))
