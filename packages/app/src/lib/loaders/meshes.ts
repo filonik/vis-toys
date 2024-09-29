@@ -3,7 +3,6 @@ import * as wgh from 'webgpu-utils'
 import { z } from "zod"
 
 import * as A from "@/lib/arrays"
-import * as F from "@/lib/functors"
 import * as M from "@/lib/morphisms"
 import * as T from "@/lib/tensors"
 
@@ -39,16 +38,16 @@ const BasicVertex = z.object({
 }).transform(
   ({transform, position, size, distance, fill, stroke, color}) => ({
     transform: transform !== undefined?
-      T.lmat.set(T.lmat.I(), T.lmat.fromValue(transform)):
+      T.lmat.assign(T.lmat.I(), T.lmat.fromValue(transform)):
       T.lmat.ts(
-        T.lvec.set(T.lvec.zeros(), T.lvec.fromValue(position)),
-        T.lvec.set(T.lvec.ones(), T.lvec.fromValue(size)),
+        T.lvec.assign(T.lvec.zeros(), T.lvec.fromValue(position)),
+        T.lvec.assign(T.lvec.ones(), T.lvec.fromValue(size)),
       ),
     //transform: transform ?? (position !== undefined? [vectorFrom(position)]: undefined) ?? [[]],
-    distance: T.lvec.set(T.lvec.ones(), T.lvec.fromValue(distance)),
+    distance: T.lvec.assign(T.lvec.ones(), T.lvec.fromValue(distance)),
     //distance: distance !== undefined? vectorFrom(distance): [],
-    fill: T.lvec.set(T.lvec.ones(), T.lvec.fromValue(fill ?? color)),
-    stroke: T.lvec.set(T.lvec.ones(), T.lvec.fromValue(stroke ?? color)),
+    fill: T.lvec.assign(T.lvec.ones(), T.lvec.fromValue(fill ?? color)),
+    stroke: T.lvec.assign(T.lvec.ones(), T.lvec.fromValue(stroke ?? color)),
   })
 )
 

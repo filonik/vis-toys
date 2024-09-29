@@ -1,5 +1,7 @@
+import type {Maybe, Morphism} from "@/lib/types"
+
 import * as A from "@/lib/arrays"
-import * as F from "@/lib/functors"
+import * as G from "@/lib/generators"
 
 export type EagerScalar<T> = T
 export type EagerVector<T> = Array<T>
@@ -8,48 +10,80 @@ export type EagerMatrix<T> = Array<Array<T>>
 export type LazyScalar<T> = () => T
 export type LazyVector<T> = (i: number) => T
 export type LazyMatrix<T> = (i: number, j: number) => T
-export type LazyTensor<T> = (...indices: number[]) => T
+export type LazyTensor<T> = (...indices: Array<number>) => T
 
-type LazyScalarType = {
-  fromEager<T>(value: F.Maybe<T>): LazyScalar<F.Maybe<T>>
-  fromValue<T>(value: F.Maybe<T>): LazyScalar<F.Maybe<T>>
-  set<T>(value: LazyScalar<T>, newValue: LazyScalar<F.Maybe<T>>): LazyScalar<T>
-  ones(): LazyVector<number>
-  zeros(): LazyVector<number>
+export type PartialLazyScalar<T> = () => T
+export type PartialLazyVector<T> = (i?: number) => T
+export type PartialLazyMatrix<T> = (i?: number, j?: number) => T
+export type PartialLazyTensor<T> = (...indices: Array<Maybe<number>>) => T
+
+const curry: (merge: (is: Array<number>, js: Array<number>) => Iterable<number>) => <T>(value: LazyTensor<T>) => LazyTensor<LazyTensor<T>> = (merge) => (value) => {
+  return (...is) => (...js) => {
+    const ks = merge(is, js)
+    return value(...ks)
+  }
+}
+
+const uncurry: (split: (is: Array<number>) => [is: Array<number>, js: Array<number>])=> <T>(value: LazyTensor<LazyTensor<T>>) => LazyTensor<T> = (split) => (value) => {
+  return (...ks) => {
+    const [is, js] = split(ks)
+    return value(...is)(...js)
+  }
+}
+
+const partial: (merge: (is: Array<Maybe<number>>, js: Array<number>) => Iterable<number>) => <T>(value: LazyTensor<T>) => PartialLazyTensor<LazyTensor<T>> = (merge) => (value) => {
+  return (...is) => (...js) => value(...merge(is, js))
+}
+
+type LazyTensorType = {
+  from<T>(value: LazyTensor<T>): LazyTensor<T>
+  full<T>(value: T): LazyTensor<T>
+  ones(): LazyTensor<number>
+  zeros(): LazyTensor<number>
+  assign<T>(value: LazyTensor<T>, newValue: LazyTensor<Maybe<T>>): LazyTensor<T>
+  map<S,T>(f: Morphism<S, T>): Morphism<LazyTensor<S>, LazyTensor<T>>
+  //
+  mapIndices<T>(f: Morphism<Array<number>, Array<number>>): Morphism<LazyTensor<T>, LazyTensor<T>>
+  mask<T>(p: LazyTensor<boolean>): (value: LazyTensor<T>) => LazyVector<Maybe<T>>
+  curry<T>(value: LazyTensor<T>): LazyTensor<LazyTensor<T>>
+  partial<T>(value: LazyTensor<T>): PartialLazyTensor<LazyTensor<T>>
+  getAxis(n: number): (i: number) => <T>(value: LazyTensor<T>) => LazyTensor<T>
+  //add(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+  //sub(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+  mul(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+  //div(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+}
+
+type LazyScalarType = LazyTensorType & {
+  fromEager<T>(value: Maybe<T>): LazyScalar<Maybe<T>>
+  fromValue<T>(value: Maybe<T>): LazyScalar<Maybe<T>>
   toEager<T>(value: LazyScalar<T>): () => EagerScalar<T>
+  //partial<T>(value: LazyScalar<T>): PartialLazyScalar<LazyTensor<T>>
 }
 
-type LazyVectorType = {
-  fromEager<T>(value: F.Maybe<Array<T>>): LazyVector<F.Maybe<T>>
-  fromValue<T>(value: F.Maybe<T | Array<T>>): LazyVector<F.Maybe<T>>
-  set<T>(value: LazyVector<T>, newValue: LazyVector<F.Maybe<T>>): LazyVector<T>
-  ones(): LazyVector<number>
-  zeros(): LazyVector<number>
-  unit(i: number): LazyVector<number>
+type LazyVectorType = LazyTensorType & {
+  fromEager<T>(value: Maybe<Array<T>>): LazyVector<Maybe<T>>
+  fromValue<T>(value: Maybe<T | Array<T>>): LazyVector<Maybe<T>>
   toEager<T>(value: LazyVector<T>): (n: number) => EagerVector<T>
+  //partial<T>(value: LazyVector<T>): PartialLazyVector<LazyTensor<T>>
+  iota(): LazyVector<number>
+  unit(i: number): LazyVector<number>
+  slices(lower: number, upper: number): LazyVector<boolean>
+  reduce<S,T>(value: LazyVector<S>, f: (r: T, x: S) => T, initial: T): (indices: Iterable<number>) => T
 }
 
-type LazyMatrixType = {
-  fromEager<T>(value: F.Maybe<Array<Array<T>>>): LazyMatrix<F.Maybe<T>>
-  fromValue<T>(value: F.Maybe<T| Array<T> | Array<Array<T>>>): LazyMatrix<F.Maybe<T>>
-  set<T>(value: LazyMatrix<T>, newValue: LazyMatrix<F.Maybe<T>>): LazyMatrix<T>
+type LazyMatrixType = LazyTensorType & {
+  fromEager<T>(value: Maybe<Array<Array<T>>>): LazyMatrix<Maybe<T>>
+  fromValue<T>(value: Maybe<T| Array<T> | Array<Array<T>>>): LazyMatrix<Maybe<T>>
+  toEager<T>(value: LazyMatrix<T>): (m: number, n: number) => EagerMatrix<T>
+  //partial<T>(value: LazyMatrix<T>): PartialLazyMatrix<LazyTensor<T>>
+  getRow(i: number): <T>(value: LazyMatrix<T>) => LazyVector<T>
+  getCol(i: number): <T>(value: LazyMatrix<T>) => LazyVector<T>
   I(): LazyMatrix<number>
   t(t: LazyVector<number>): LazyMatrix<number>
   s(s: LazyVector<number>): LazyMatrix<number>
   ts(t: LazyVector<number>, s: LazyVector<number>): LazyMatrix<number>
   st(s: LazyVector<number>, t: LazyVector<number>): LazyMatrix<number>
-  toEager<T>(value: LazyMatrix<T>): (m: number, n: number) => EagerMatrix<T> 
-}
-
-type LazyTensorType = {
-  set<T>(value: LazyTensor<T>, newValue: LazyTensor<F.Maybe<T>>): LazyTensor<T>
-  ones(): LazyTensor<number>
-  zeros(): LazyTensor<number>
-  map<S,T>(f: F.Morphism<S,T>): F.Morphism<LazyTensor<S>,LazyTensor<T>>
-  //add(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
-  //sub(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
-  //mul(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
-  //div(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
 }
 
 function isScalar<T>(value: any): value is T {
@@ -62,18 +96,41 @@ function isMatrix<T>(value: any): value is T[][] {
   return Array.isArray(value) && isVector(value[0])
 }
 
+
+
 export const ltensor: LazyTensorType = {
-  ones() {
-    return () => 1.0
+  from(value) {
+    return value
+  },
+  full(value) {
+    return () => value
   },
   zeros() {
-    return () => 0.0
+    return ltensor.full(0)
   },
-  set(value, newValue) {
+  ones() {
+    return ltensor.full(1)
+  },
+  assign(value, newValue) {
     return (...indices) => newValue(...indices) ?? value(...indices)
   },
   map(f) {
     return (value) => (...indices) => f(value(...indices))
+  },
+  mapIndices(f) {
+    return (value) => (...indices) => value(...f(indices))
+  },
+  mask(p) {
+    return (value) => (...indices) => p(...indices)? value(...indices): undefined
+  },
+  curry: curry(A.concat),
+  partial: partial(G.complete),
+  getAxis(n) {
+    const indices = A.oneValueAt(n)
+    return (i) => (value) => ltensor.partial(value)(...indices(i))
+  },
+  mul(x, y) {
+    return (...indices) => x(...indices) * y(...indices)
   }
 }
 
@@ -87,7 +144,7 @@ export const lsca: LazyScalarType = {
   },
   toEager(value) {
     return value
-  }
+  },
 }
 
 export const lvec: LazyVectorType = {
@@ -98,39 +155,56 @@ export const lvec: LazyVectorType = {
   fromValue(value) {
     return isVector(value)? lvec.fromEager(value): lsca.fromValue(value)
   },
+  toEager(value) {
+    return (n) => A.from((i) => value(i), n)
+  },
+  iota() {
+    return (i) => i
+  },
   unit(i) {
     return (j) => i==j? 1.0: 0.0
   },
-  toEager(value) {
-    return (n) => A.from((i) => value(i), n)
+  slices(lower, upper) {
+    return (i) => lower <= i && i < upper
+  },
+  reduce(value, f, initial) {
+    return (indices) => {
+      let result = initial
+      for (let i of indices) {
+        result = f(result, value(i))
+      }
+      return result
+    }
   }
 }
 
 export const lmat: LazyMatrixType = {
   ...ltensor,
   fromEager(value) {
-    return (i,j) => value?.[i]?.[j]
+    return (i, j) => value?.[i]?.[j]
   },
   fromValue(value) {
     return isMatrix(value)? lmat.fromEager(value): lvec.fromValue(value)
   },
+  toEager(value) {
+    return (m, n) => A.from((i) => A.from((j) => value(i,j), m), n)
+  },
+  getRow: ltensor.getAxis(0),
+  getCol: ltensor.getAxis(1),
   I() {
-    return (i,j) => i==j? 1.0: 0.0
+    return (i, j) => i==j? 1.0: 0.0
   },
   t(t) {
-    return lmat.set(lmat.I(), (i, j) => i==0 && j>0? t(j-1): undefined) 
+    return lmat.assign(lmat.I(), (i, j) => i==0 && j>0? t(j-1): undefined) 
   },
   s(s) {
-    return lmat.set(lmat.I(), (i, j) => i==j && j>0? s(j-1): undefined) 
+    return lmat.assign(lmat.I(), (i, j) => i==j && j>0? s(j-1): undefined) 
   },
   ts(t, s) {
     return (i,j) => i==0 && j==0? 1.0: i==0? t(j-1): i==j? s(j-1): 0.0
   },
   st(s, t) {
     return lmat.I()
-  },
-  toEager(value) {
-    return (m, n) => A.from((i) => A.from((j) => value(i,j), m), n)
   }
 }
 

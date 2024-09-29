@@ -5,8 +5,7 @@ import { useRoute, stringifyQuery } from "vue-router"
 
 import { useClipboard } from '@vueuse/core'
 
-import type { Maybe } from '@/lib/functors'
-import type { Isomorphism } from '@/lib/morphisms'
+import type { Maybe, Isomorphism } from '@/lib/types'
 
 import * as A from "@/lib/arrays"
 import * as M from "@/lib/morphisms"

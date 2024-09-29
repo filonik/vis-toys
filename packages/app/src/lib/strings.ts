@@ -1,4 +1,6 @@
-import {iso, type Isomorphism} from "@/lib/morphisms"
+import type {Isomorphism} from "@/lib/types"
+
+import {iso} from "@/lib/morphisms"
 
 import JSON5 from 'json5'
 
