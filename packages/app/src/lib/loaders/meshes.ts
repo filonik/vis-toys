@@ -3,7 +3,6 @@ import * as wgh from 'webgpu-utils'
 import { z } from "zod"
 
 import * as A from "@/lib/arrays"
-import * as M from "@/lib/morphisms"
 import * as T from "@/lib/tensors"
 
 export type ParseError = z.ZodError
@@ -61,7 +60,13 @@ const SimplicialMesh = <T extends z.ZodType>(vertex: T) => z.object({
   indices: indices ?? A.range(0, vertices.length)
 }))
 
+const InstancedSimplicialMesh = <T extends z.ZodType>(vertex: T) => z.object({
+  shape: SimplicialMesh(vertex),
+  layer: SimplicialMesh(vertex),
+})
+
 export const BasicSimplicialMesh = SimplicialMesh(BasicVertex)
+export const BasicInstancedSimplicialMesh = InstancedSimplicialMesh(BasicVertex)
 
 export type Scalar = z.infer<typeof Scalar>
 export type Vector = z.infer<typeof Vector>
@@ -76,8 +81,10 @@ export type Color = z.infer<typeof Color>
 export type BasicVertex = z.infer<typeof BasicVertex>
 
 export type SimplicialMesh<T> = z.infer<ReturnType<typeof SimplicialMesh<z.ZodType<T>>>>
+export type InstancedSimplicialMesh<T> = z.infer<ReturnType<typeof InstancedSimplicialMesh<z.ZodType<T>>>>
 
 export type BasicSimplicialMesh = z.infer<typeof BasicSimplicialMesh>
+export type BasicInstancedSimplicialMesh = z.infer<typeof BasicInstancedSimplicialMesh>
 
 const vec = (n: number) => ({
   fromLazy(f: T.LazyVector<number>) {

@@ -1,7 +1,8 @@
-import type {Maybe, Morphism} from "@/lib/types"
+import type {Maybe, Morphism, Multimorphism} from "@/lib/types"
 
 import * as A from "@/lib/arrays"
 import * as G from "@/lib/generators"
+import * as O from "@/lib/operators"
 
 export type EagerScalar<T> = T
 export type EagerVector<T> = Array<T>
@@ -17,9 +18,14 @@ export type PartialLazyVector<T> = (i?: number) => T
 export type PartialLazyMatrix<T> = (i?: number, j?: number) => T
 export type PartialLazyTensor<T> = (...indices: Array<Maybe<number>>) => T
 
-const curry: (merge: (is: Array<number>, js: Array<number>) => Iterable<number>) => <T>(value: LazyTensor<T>) => LazyTensor<LazyTensor<T>> = (merge) => (value) => {
+export type LazyTensors<T extends unknown[]> = { [K in keyof T]: LazyTensor<T[K]> }
+
+type LazyTensorMap = <S,T>(f: Morphism<S, T>) => Morphism<LazyTensor<S>, LazyTensor<T>> 
+type LazyTensorMapN = <S extends unknown[], T>(f: Multimorphism<S,T>) => Multimorphism<LazyTensors<S>, LazyTensor<T>> 
+
+const curry: (unsplit: (is: Array<number>, js: Array<number>) => Iterable<number>) => <T>(value: LazyTensor<T>) => LazyTensor<LazyTensor<T>> = (unsplit) => (value) => {
   return (...is) => (...js) => {
-    const ks = merge(is, js)
+    const ks = unsplit(is, js)
     return value(...ks)
   }
 }
@@ -41,17 +47,19 @@ type LazyTensorType = {
   ones(): LazyTensor<number>
   zeros(): LazyTensor<number>
   assign<T>(value: LazyTensor<T>, newValue: LazyTensor<Maybe<T>>): LazyTensor<T>
-  map<S,T>(f: Morphism<S, T>): Morphism<LazyTensor<S>, LazyTensor<T>>
+  map: LazyTensorMap
+  mapN: LazyTensorMapN
   //
   mapIndices<T>(f: Morphism<Array<number>, Array<number>>): Morphism<LazyTensor<T>, LazyTensor<T>>
   mask<T>(p: LazyTensor<boolean>): (value: LazyTensor<T>) => LazyVector<Maybe<T>>
   curry<T>(value: LazyTensor<T>): LazyTensor<LazyTensor<T>>
   partial<T>(value: LazyTensor<T>): PartialLazyTensor<LazyTensor<T>>
   getAxis(n: number): (i: number) => <T>(value: LazyTensor<T>) => LazyTensor<T>
-  //add(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
-  //sub(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+  // Operators
+  add(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+  sub(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
   mul(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
-  //div(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
+  div(x: LazyTensor<number>, y: LazyTensor<number>): LazyTensor<number>
 }
 
 type LazyScalarType = LazyTensorType & {
@@ -96,7 +104,8 @@ function isMatrix<T>(value: any): value is T[][] {
   return Array.isArray(value) && isVector(value[0])
 }
 
-
+const ltensorMap: LazyTensorMap = (f) => (value) => (...indices) => f(value(...indices))
+const ltensorMapN: LazyTensorMapN = (f) => (...values) => (...indices) => (f as any)(...values.map((value) => value(...indices)))
 
 export const ltensor: LazyTensorType = {
   from(value) {
@@ -114,9 +123,8 @@ export const ltensor: LazyTensorType = {
   assign(value, newValue) {
     return (...indices) => newValue(...indices) ?? value(...indices)
   },
-  map(f) {
-    return (value) => (...indices) => f(value(...indices))
-  },
+  map: ltensorMap,
+  mapN: ltensorMapN,
   mapIndices(f) {
     return (value) => (...indices) => value(...f(indices))
   },
@@ -126,12 +134,13 @@ export const ltensor: LazyTensorType = {
   curry: curry(A.concat),
   partial: partial(G.complete),
   getAxis(n) {
-    const indices = A.oneValueAt(n)
+    const indices = A.itemAt(n)
     return (i) => (value) => ltensor.partial(value)(...indices(i))
   },
-  mul(x, y) {
-    return (...indices) => x(...indices) * y(...indices)
-  }
+  add: ltensorMapN(O.add),
+  sub: ltensorMapN(O.sub),
+  mul: ltensorMapN(O.mul),
+  div: ltensorMapN(O.div),
 }
 
 export const lsca: LazyScalarType = {

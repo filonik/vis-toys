@@ -1,41 +1,48 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue"
+import { ref, watch } from "vue"
 import { useEventListener, toReactive } from '@vueuse/core';
 
-import { ArrowUpOnSquareIcon } from '@heroicons/vue/24/outline'
+import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
-import useQueryState, { Base64UrlCodec } from "@/composables/useQueryState"
+import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
 
 import CodeEditor from '@/components/CodeEditor.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 import ToggleDarkButton from '@/components/ToggleDarkButton.vue'
 
-import { BasicSimplicialMesh, ParseError, createBuffersAndAttributes, PRIMITIVES } from "@/lib/loaders/meshes"
-
-import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
-import basicShaderCode from '@/assets/shaders/basic.wgsl?raw'
+import { BasicInstancedSimplicialMesh, createBuffersAndAttributes, ParseError, PRIMITIVES } from "@/lib/loaders/meshes"
 
 import chroma from 'chroma-js'
 import * as wgh from 'webgpu-utils'
 
-import * as A from "@/lib/arrays"
 import * as M from "@/lib/morphisms"
-import * as T from "@/lib/tensors"
 import * as S from "@/lib/strings"
+
+import basicInstancedShaderCode from '@/assets/shaders/basic-instanced.wgsl?raw'
 
 import { mat4f } from "@/lib/tensors"
 
 const stringToJson = M.iso.maybe(S.stringToJson5())
 
 const DEFAULT_SOURCE = `{
-  "primitive": 2,
-  "vertices": [
-    {"position": [-1, -1], "distance": [1,0,0,1], "fill": "red", "stroke": "yellow"},
-    {"position": [-1, 1], "distance": [1,1,0,0], "fill": "green", "stroke": "blue"},
-    {"position": [1, -1], "distance": [0,0,1,1], "fill": "blue", "stroke": "green"},
-    {"position": [1, 1], "distance": [0,1,1,0], "fill": "yellow", "stroke": "red"}
-  ],
-  "indices": [0, 1, 2, 1, 2, 3]
+  "shape": {
+    "primitive": 2,
+    "vertices": [
+      {"position": [-1, -1], "distance": [1,0,0,1]},
+      {"position": [-1, 1], "distance": [1,1,0,0]},
+      {"position": [1, -1], "distance": [0,0,1,1]},
+      {"position": [1, 1], "distance": [0,1,1,0]}
+    ],
+    "indices": [0, 1, 2, 1, 2, 3]
+  },
+  "layer": {
+    "vertices": [
+      {"position": [-1, -1], "size": 0.1, "color": "red"},
+      {"position": [-1, 1], "size": 0.1, "color": "green"},
+      {"position": [1, -1], "size": 0.1, "color": "blue"},
+      {"position": [1, 1], "size": 0.1, "color": "yellow"}
+    ],
+  }
 }`
 
 type State = {
@@ -52,11 +59,13 @@ const stateRef = ref<State>({
   material: {
     fill: "#ffffff",
     stroke: "#888888",
-    strokeWidth: 20.0,
+    strokeWidth: 10.0,
   }
 })
 
-const meshRef = ref<BasicSimplicialMesh | null>(null)
+const state = toReactive(stateRef)
+
+const meshRef = ref<BasicInstancedSimplicialMesh | null>(null)
 
 type RendererState = Record<number, {
   pipeline: GPURenderPipeline
@@ -66,18 +75,14 @@ type RendererState = Record<number, {
 }>
 
 type MeshState = {
-  vertices: wgh.BuffersAndAttributes
+  shapeVertices: wgh.BuffersAndAttributes
+  layerVertices: wgh.BuffersAndAttributes
   topology: number
 }
 
 let rendererState: RendererState | null = null
 
 let meshState: MeshState | null = null
-
-const options: UseWebGpuOptions = {
-  alphaMode: 'premultiplied',
-  autoResize: true,
-}
 
 const mesh: WebGpuResource & {valid: boolean} = {
   valid: false,
@@ -88,15 +93,21 @@ const mesh: WebGpuResource & {valid: boolean} = {
 
     const value = meshRef.value
 
-    const vertices = createBuffersAndAttributes(device, value, {
+    const shapeVertices = createBuffersAndAttributes(device, value?.shape ?? null, {
       shaderLocation: 0,
       stepMode: 'vertex',
       interleave: true,
     })
-    
-    const topology = value?.primitive ?? 0
 
-    meshState = { vertices, topology }
+    const layerVertices = createBuffersAndAttributes(device, value?.layer ?? null, {
+      shaderLocation: 7,
+      stepMode: 'instance',
+      interleave: true,
+    })
+    
+    const topology = value?.shape?.primitive ?? 0
+
+    meshState = { shapeVertices, layerVertices, topology }
 
     //console.log(meshState)
   },
@@ -118,18 +129,15 @@ const mesh: WebGpuResource & {valid: boolean} = {
   }
 }
 
-const transforms = {
-  //camera: mat4f.identity(),
-  camera: mat4f.scaling([0.5,0.5,0.5]),
-}
-
-const defs = wgh.makeShaderDataDefinitions(basicShaderCode);
+const defs = wgh.makeShaderDataDefinitions(basicInstancedShaderCode);
 
 const uCamera = wgh.makeStructuredView(defs.uniforms.uCamera);
 const uMaterial = wgh.makeStructuredView(defs.uniforms.uMaterial);
 
+const cameraTransform = mat4f.scaling([0.5,0.5,0.5])
+
 uCamera.set({
-  transform: mat4f.identity(),
+  transform: cameraTransform
 })
 
 uMaterial.set({
@@ -150,7 +158,7 @@ const scaleToFitCover = (display: [number, number]) => {
 
 const renderer: WebGpuResource = {
   onCreate(args) {
-    console.log("SimplicialMeshView::onCreate")
+    console.log("InstancedSimplicialMeshView::onCreate")
 
     const {device, format} = args
 
@@ -160,10 +168,10 @@ const renderer: WebGpuResource = {
 
     if (!meshState) return
 
-    const {vertices} = meshState
+    const {shapeVertices, layerVertices} = meshState
 
     const module = device.createShaderModule({
-      code: basicShaderCode
+      code: basicInstancedShaderCode
     })
 
     const camera = device.createBuffer({
@@ -181,7 +189,10 @@ const renderer: WebGpuResource = {
         vertex: {
           module,
           entryPoint: 'vertexMain',
-          buffers: vertices.bufferLayouts,
+          buffers: [
+            ...shapeVertices.bufferLayouts,
+            ...layerVertices.bufferLayouts,
+          ],
         },
         fragment: {
           module,
@@ -208,7 +219,7 @@ const renderer: WebGpuResource = {
     //console.log(rendererState)
   },
   onRender(args) {
-    const {device, context, display} = args
+    const {device, context} = args
 
     if (!rendererState) return
 
@@ -216,7 +227,7 @@ const renderer: WebGpuResource = {
 
     if (!meshState) return
 
-    const {vertices} = meshState
+    const {shapeVertices, layerVertices} = meshState
 
     const commandEncoder = device.createCommandEncoder()
 
@@ -235,8 +246,8 @@ const renderer: WebGpuResource = {
 
     const {pipeline, bindGroup, camera, material} = rendererState[meshState.topology]
 
-    const displayTransform = scaleToFitContain(display)
-    mat4f.mul(displayTransform, transforms.camera, uCamera.views.transform)
+    const displayTransform = scaleToFitContain([1920, 1080])
+    mat4f.mul(displayTransform, cameraTransform, uCamera.views.transform)
 
     uMaterial.set({
       fill: chroma(state.material.fill).gl(),
@@ -249,12 +260,13 @@ const renderer: WebGpuResource = {
 
     pass.setPipeline(pipeline)
     pass.setBindGroup(0, bindGroup)
-    pass.setVertexBuffer(0, vertices.buffers[0])
-    //passEncoder.setVertexBuffer(1, instancedVerts.buffers[0])
-    //passEncoder.setVertexBuffer(2, instancedVerts.buffers[1])
-    pass.setIndexBuffer(vertices.indexBuffer!, vertices.indexFormat!)
-    //pass.drawIndexed(meshState.vertices.numElements, instancedVerts.numElements)
-    pass.drawIndexed(vertices.numElements)
+    
+    pass.setVertexBuffer(0, shapeVertices.buffers[0])
+    pass.setVertexBuffer(1, layerVertices.buffers[0])
+    pass.setIndexBuffer(shapeVertices.indexBuffer!, shapeVertices.indexFormat!)
+
+    pass.drawIndexed(shapeVertices.numElements, layerVertices.numElements)
+    
     pass.end()
 
     const commandBuffer = commandEncoder.finish()
@@ -262,7 +274,7 @@ const renderer: WebGpuResource = {
     device.queue.submit([commandBuffer])
   },
   onDelete(args) {
-    console.log("SimplicialMeshView::Delete")
+    console.log("InstancedSimplicialMeshView::Delete")
     
     if(!rendererState) return
 
@@ -272,9 +284,27 @@ const renderer: WebGpuResource = {
   }
 }
 
-const keyboardState = null
 const pointerState = {
   down: false
+}
+
+const keyToDirection = (key: string) => {
+  const result = [0,0,0]
+  switch (key) {
+    case 'ArrowLeft':
+      result[0] -= 1
+      break
+    case 'ArrowUp':
+      result[1] += 1
+      break
+    case 'ArrowRight':
+      result[0] += 1
+      break
+    case 'ArrowDown':
+      result[1] -= 1
+      break
+  }
+  return result
 }
 
 const listeners: HTMLElementEventListenerMap = {
@@ -282,25 +312,9 @@ const listeners: HTMLElementEventListenerMap = {
     console.log(event)
   },
   keyup: (event: KeyboardEvent) => {
-    const delta = [0,0,0]
-
-    switch (event.key) {
-      case 'ArrowLeft':
-        delta[0] -= 1
-        break
-      case 'ArrowUp':
-        delta[1] += 1
-        break
-      case 'ArrowRight':
-        delta[0] += 1
-        break
-      case 'ArrowDown':
-        delta[1] -= 1
-        break
-    }
-
+    const delta = keyToDirection(event.key)
     const step = event.shiftKey? 0.5: 0.05
-    mat4f.translate(transforms.camera, [delta[0]*step, delta[1]*step, delta[2]*step], transforms.camera)
+    mat4f.translate(cameraTransform, [delta[0]*step, delta[1]*step, delta[2]*step], cameraTransform)
   },
   pointerdown: (event: PointerEvent) => {
     pointerState.down = true
@@ -317,28 +331,26 @@ const listeners: HTMLElementEventListenerMap = {
       -event.movementY * 4.0/aspect,
       0
     ]
-    mat4f.translate(transforms.camera, [delta[0], delta[1], delta[2]], transforms.camera)
+    mat4f.translate(cameraTransform, [delta[0], delta[1], delta[2]], cameraTransform)
   },
   pointerup: (event: PointerEvent) => {
     pointerState.down = false
   },
   wheel: (event: WheelEvent) => {
     const scale = 1.0 + event.deltaY/100.0
-    mat4f.scale(transforms.camera, [scale, scale, 1], transforms.camera)
+    mat4f.scale(cameraTransform, [scale, scale, 1], cameraTransform)
   }
 }
 
-const state = toReactive(stateRef)
-
-const { copy } = useQueryState(stateRef, M.iso(
-  ({ state }) => stringToJson(Base64UrlCodec(state)),
-  (value) => ({ state: Base64UrlCodec.inv(stringToJson.inv(value)) }),
-))
+const options: UseWebGpuOptions = {
+  alphaMode: 'premultiplied',
+  autoResize: false,
+}
 
 const save = (state: State) => {
   try {
     const value = stringToJson(state.source)
-    meshRef.value = BasicSimplicialMesh.parse(value)
+    meshRef.value = BasicInstancedSimplicialMesh.parse(value)
     mesh.valid = false
   } catch (error) {
     if (error instanceof SyntaxError) {
@@ -373,42 +385,50 @@ useEventListener(document, 'keydown', (event) => {
   }
 })
 
-watch(stateRef, save)
-
-save(state)
+watch(stateRef, save, { immediate: true })
 </script>
 
 <template>
-  <header class="flex flex-row items-center h-12 p-1 border-b-2 border-border">
-    <h1 class="px-2">Simplicial Mesh</h1>
+  <header class="basis-12 flex flex-row items-center">
+    <h1 class="px-2">Instanced Simplicial Mesh</h1>
     <span class="flex-grow"></span>
-    <button class="rounded-lg p-2" type="button" @click="copy()" >
-      <ArrowUpOnSquareIcon class="w-5 h-5"/>
-    </button>
     <ToggleDarkButton/>
   </header>
-  <main class="h-full grid grid-rows-3 grid-cols-none md:grid-rows-2 md:grid-cols-2">
-    <CodeEditor class="border-b-2 border-border md:row-span-2" v-model="state.source"/>
-    <Suspense>
-      <WebGpuCanvas class="h-full w-full border-b-2 border-border" :renderer :listeners :options/>
-    </Suspense>
-    <div class="flex flex-col p-2 border-b-2 border-border">
-      <h2>Material</h2>
-      <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
-        <label class="w-12 text-right" for="fill">Fill:</label>
-        <input class="w-16" name="fill" type="color" v-model="state.material.fill"/>
-      </div>
-      <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
-        <label class="w-12 text-right" for="stroke">Stroke:</label>
-        <input class="w-16" name="stroke" type="color" v-model="state.material.stroke"/>
-      </div>
-      <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
-        <label class="w-12 text-right" for="strokeWidth">Width:</label>
-        <input class="w-16" name="strokeWidth" type="number" v-model="state.material.strokeWidth"/>
-      </div>
-    </div>
-  </main>
+  <TabGroup as="main" class="flex-grow flex flex-col overflow-hidden" :default-index="2">
+    <TabList class="flex flex-row md:hidden">
+      <Tab class="tab">Input</Tab>
+      <Tab class="tab">Output</Tab>
+    </TabList>
+    <TabPanels class="h-full md:grid md:grid-cols-2 border-y-2 border-border">
+      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-1" :static="true">
+        <CodeEditor v-model="state.source"/>
+      </TabPanel>
+      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2" :static="true">
+        <Suspense>
+          <WebGpuCanvas class="h-full w-full object-cover" :renderer :listeners :options/>
+        </Suspense>
+        <div>
+          <h2>Material</h2>
+          <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
+            <label class="w-12 text-right" for="fill">Fill:</label>
+            <input class="w-16" name="fill" type="color" v-model="state.material.fill"/>
+          </div>
+          <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
+            <label class="w-12 text-right" for="stroke">Stroke:</label>
+            <input class="w-16" name="stroke" type="color" v-model="state.material.stroke"/>
+          </div>
+          <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
+            <label class="w-12 text-right" for="strokeWidth">Width:</label>
+            <input class="w-16" name="strokeWidth" type="number" v-model="state.material.strokeWidth"/>
+          </div>
+        </div>
+      </TabPanel>
+    </TabPanels>
+  </TabGroup>
 </template>
 
 <style scoped>
+.tab {
+  @apply px-2 text-sm border-b-2 border-background focus:outline-none focus:ring-0 ui-selected:border-blue-500;
+}
 </style>

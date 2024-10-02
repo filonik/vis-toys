@@ -23,10 +23,10 @@ export const linspace: (lower: number, upper: number, length: number) => Array<n
   return from((i) => lower + i*step, length)
 }
 
-export const oneValueAt: (i: number) => <T>(v: T) => Array<Maybe<T>> = (i) => (v) => from((j) => i==j? v: undefined, i+1)
+export const itemAt: (i: number) => <T>(v: T) => Array<Maybe<T>> = (i) => (v) => from((j) => i==j? v: undefined, i+1)
 
-export const getitem: <T>(value: Array<T>) => (i: number) => Maybe<T> = (value) => (i) => value[i]
-export const itemgetter: (i: number) => <T>(value: Array<T>) => Maybe<T> = (i) => (value) => value[i]
+export const getItem: <T>(value: Array<T>) => (i: number) => Maybe<T> = (value) => (i) => value[i]
+export const itemGetter: (i: number) => <T>(value: Array<T>) => Maybe<T> = (i) => (value) => value[i]
 
 export const reduce: <S,T>(m: M.LeftMonoid<S,T>) => Morphism<Array<S>, T> = ({append, empty}) => {
   return (xs) => {
@@ -44,6 +44,9 @@ export const any: (values: Array<boolean>) => boolean = reduce(M.Or)
 export const sum: (values: Array<number>) => number = reduce(M.Add)
 export const product: (values: Array<number>) => number = reduce(M.Mul)
 
+export const minimum: (values: Array<number>) => number = reduce(M.Min)
+export const maximum: (values: Array<number>) => number = reduce(M.Max)
+
 export const CartesianMul: <T>() => M.LeftMonoid<Array<T>, Array<Array<T>>> = () => ({
   append: (x, y) => x.flatMap((d) => y.map((e) => [...d, e])),
   empty: () => [[]],
@@ -52,6 +55,7 @@ export const CartesianMul: <T>() => M.LeftMonoid<Array<T>, Array<Array<T>>> = ()
 export const cartesianProduct: <T>(values: Array<Array<T>>) => Array<Array<T>> = reduce(CartesianMul())
 
 //export const sort:
+//export const filter:
 //export const reverse:
 
 export const reverse: <T>(value: Array<T>) => Array<T> = (value) => value.slice().reverse()
@@ -60,8 +64,6 @@ export const unArray = <T>(value: T | Array<T>) => Array.isArray(value)? value[0
 
 export const concat: <T>(...values: Array<Array<T>>) => Array<T> = (...values) => empty().concat(...values) as any
 
-
-//console.log("mapN", add([1,2,3],[4,5]))
 
 
 // Different kinds of arrays (see Awkward Arrays)

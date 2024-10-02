@@ -119,21 +119,21 @@ export default async function useWebGpu(
 
   if (!navigator.gpu) {
     console.log('WebGPU not supported.')
-    return
+    return false
   }
 
   const adapter = await navigator.gpu.requestAdapter()
 
   if (!adapter) {
     console.log('Invalid adapter.')
-    return
+    return false
   }
 
   const device = await adapter.requestDevice()
 
   if (!device) {
     console.log('Invalid device.')
-    return
+    return false
   }
 
   const initialize = () => {
@@ -170,5 +170,5 @@ export default async function useWebGpu(
     state = null
   }
 
-  return null
+  return true
 }

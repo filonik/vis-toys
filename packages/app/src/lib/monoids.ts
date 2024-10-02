@@ -5,7 +5,7 @@ export type LeftMonoid<S, T> = {
   empty: () => T
 }
 
-export type Monoid<T> = LeftMonoid<T,T>
+export type Monoid<T> = LeftMonoid<T, T>
 
 export const And: Monoid<boolean> = {
   append: O.and,
@@ -25,4 +25,14 @@ export const Add: Monoid<number> = {
 export const Mul: Monoid<number> = {
   append: O.mul,
   empty: () => 1
+}
+
+export const Min: Monoid<number> = {
+  append: O.min,
+  empty: () => +Infinity
+}
+
+export const Max: Monoid<number> = {
+  append: O.max,
+  empty: () => -Infinity
 }
