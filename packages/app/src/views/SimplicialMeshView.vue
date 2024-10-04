@@ -2,25 +2,23 @@
 import { computed, reactive, ref, watch } from "vue"
 import { useEventListener, toReactive } from '@vueuse/core';
 
-import { ArrowUpOnSquareIcon } from '@heroicons/vue/24/outline'
+import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
-import useQueryState, { Base64UrlCodec } from "@/composables/useQueryState"
+import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
 
 import CodeEditor from '@/components/CodeEditor.vue'
-import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
+import ShareLinkButton from '@/components/ShareLinkButton.vue'
 import ToggleDarkButton from '@/components/ToggleDarkButton.vue'
+import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
 import { BasicSimplicialMesh, ParseError, createBuffersAndAttributes, PRIMITIVES } from "@/lib/loaders/meshes"
 
-import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
 import basicShaderCode from '@/assets/shaders/basic.wgsl?raw'
 
 import chroma from 'chroma-js'
 import * as wgh from 'webgpu-utils'
 
-import * as A from "@/lib/arrays"
 import * as M from "@/lib/morphisms"
-import * as T from "@/lib/tensors"
 import * as S from "@/lib/strings"
 
 import { mat4f } from "@/lib/tensors"
@@ -330,11 +328,6 @@ const listeners: HTMLElementEventListenerMap = {
 
 const state = toReactive(stateRef)
 
-const { copy } = useQueryState(stateRef, M.iso(
-  ({ state }) => stringToJson(Base64UrlCodec(state)),
-  (value) => ({ state: Base64UrlCodec.inv(stringToJson.inv(value)) }),
-))
-
 const save = (state: State) => {
   try {
     const value = stringToJson(state.source)
@@ -373,41 +366,47 @@ useEventListener(document, 'keydown', (event) => {
   }
 })
 
-watch(stateRef, save)
-
-save(state)
+watch(stateRef, save, { immediate: true })
 </script>
 
 <template>
   <header class="flex flex-row items-center h-12 p-1 border-b-2 border-border">
     <h1 class="px-2">Simplicial Mesh</h1>
     <span class="flex-grow"></span>
-    <button class="rounded-lg p-2" type="button" @click="copy()" >
-      <ArrowUpOnSquareIcon class="w-5 h-5"/>
-    </button>
+    <ShareLinkButton v-model="stateRef"/>
     <ToggleDarkButton/>
   </header>
-  <main class="h-full grid grid-rows-3 grid-cols-none md:grid-rows-2 md:grid-cols-2">
-    <CodeEditor class="border-b-2 border-border md:row-span-2" v-model="state.source"/>
-    <Suspense>
-      <WebGpuCanvas class="h-full w-full border-b-2 border-border" :renderer :listeners :options/>
-    </Suspense>
-    <div class="flex flex-col p-2 border-b-2 border-border">
-      <h2>Material</h2>
-      <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
-        <label class="w-12 text-right" for="fill">Fill:</label>
-        <input class="w-16" name="fill" type="color" v-model="state.material.fill"/>
-      </div>
-      <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
-        <label class="w-12 text-right" for="stroke">Stroke:</label>
-        <input class="w-16" name="stroke" type="color" v-model="state.material.stroke"/>
-      </div>
-      <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
-        <label class="w-12 text-right" for="strokeWidth">Width:</label>
-        <input class="w-16" name="strokeWidth" type="number" v-model="state.material.strokeWidth"/>
-      </div>
-    </div>
-  </main>
+  <TabGroup as="main" class="flex-grow flex flex-col overflow-hidden" :default-index="2">
+    <TabList class="flex flex-row md:hidden">
+      <Tab class="tab">Input</Tab>
+      <Tab class="tab">Output</Tab>
+    </TabList>
+    <TabPanels class="h-full md:grid md:grid-cols-2 border-y-2 border-border">
+      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-1" :static="true">
+        <CodeEditor v-model="state.source"/>
+      </TabPanel>
+      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2" :static="true">
+        <Suspense>
+          <WebGpuCanvas class="h-full w-full object-cover" :renderer :listeners :options/>
+        </Suspense>
+        <div>
+          <h2>Material</h2>
+          <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
+            <label class="w-12 text-right" for="fill">Fill:</label>
+            <input class="w-16" name="fill" type="color" v-model="state.material.fill"/>
+          </div>
+          <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
+            <label class="w-12 text-right" for="stroke">Stroke:</label>
+            <input class="w-16" name="stroke" type="color" v-model="state.material.stroke"/>
+          </div>
+          <div class="flex flex-row gap-2 items-center p-1 hover:bg-background-soft">
+            <label class="w-12 text-right" for="strokeWidth">Width:</label>
+            <input class="w-16" name="strokeWidth" type="number" v-model="state.material.strokeWidth"/>
+          </div>
+        </div>
+      </TabPanel>
+    </TabPanels>
+  </TabGroup>
 </template>
 
 <style scoped>

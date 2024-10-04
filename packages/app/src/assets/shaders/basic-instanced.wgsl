@@ -25,11 +25,15 @@ struct FragmentIn {
   @location(2) stroke: vec4f,
 }
 
-struct VertexData {
+struct VaryingData {
   transform: mat4x4f,
   distance: vec4f,
   fill: vec4f,
   stroke: vec4f,
+}
+
+struct UnifromData {
+  transform: mat4x4f,
 }
 
 struct CameraData {
@@ -42,13 +46,18 @@ struct MaterialData {
   strokeWidth: f32,
 }
 
+// transform = uLayer.transform * layer.transform * uShape.transform * shape.transform
+// dualTransform = uLayer.dualTransform * layer.dualTransform * uShape.dualTransform * shape.dualTransform
+// position = in.transform[0].yzwx + in.dualTransform[0].yzwx
 
 @group(0) @binding(0) var<uniform> uCamera: CameraData;
 @group(0) @binding(1) var<uniform> uMaterial: MaterialData;
 
+@group(0) @binding(2) var<uniform> uShape: UnifromData;
+@group(0) @binding(3) var<uniform> uLayer: UnifromData;
 
-fn fromVertexIn(in: VertexIn) -> VertexData {
-  return VertexData(
+fn fromVertexIn(in: VertexIn) -> VaryingData {
+  return VaryingData(
     mat4x4f(in.transform0, in.transform1, in.transform2, in.transform3),
     in.distance,
     in.fill,
@@ -56,8 +65,8 @@ fn fromVertexIn(in: VertexIn) -> VertexData {
   );
 }
 
-fn fromInstanceIn(in: InstanceIn) -> VertexData {
-  return VertexData(
+fn fromInstanceIn(in: InstanceIn) -> VaryingData {
+  return VaryingData(
     mat4x4f(in.transform0, in.transform1, in.transform2, in.transform3),
     in.distance,
     in.fill,
@@ -65,16 +74,17 @@ fn fromInstanceIn(in: InstanceIn) -> VertexData {
   );
 }
 
-fn transform(layer: VertexData, shape: VertexData) -> VertexData {
-  return VertexData(
-    uCamera.transform * layer.transform * shape.transform,
+fn transform(layer: VaryingData, shape: VaryingData) -> VaryingData {
+  return VaryingData(
+    uCamera.transform * uLayer.transform*layer.transform * uShape.transform*shape.transform,
+    //uCamera.transform * uShape.transform*shape.transform * uLayer.transform*layer.transform,
     shape.distance,
     uMaterial.fill * layer.fill * shape.fill,
     uMaterial.stroke * layer.stroke * shape.stroke
   );
 }
 
-fn toFragmentIn(in: VertexData) -> FragmentIn {
+fn toFragmentIn(in: VaryingData) -> FragmentIn {
   return FragmentIn(
     in.transform[0].yzwx,
     in.distance,

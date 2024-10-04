@@ -48,3 +48,7 @@ label {
 #app {
   @apply h-full flex flex-col;
 }
+
+.tab {
+  @apply px-2 text-sm border-b-2 border-background focus:outline-none focus:ring-0 ui-selected:border-blue-500;
+}
