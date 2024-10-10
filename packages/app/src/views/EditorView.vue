@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive } from "vue"
 
-import CodeEditor from '@/components/CodeEditor.vue'
+import CodeEditor from '@/components/CodemirrorEditor.vue'
 
 const state = reactive({
   source: "",

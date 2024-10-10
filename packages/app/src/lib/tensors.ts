@@ -222,6 +222,26 @@ import {mat4, type BaseArgType} from 'wgpu-matrix'
 
 export const mat4f = {
   ...mat4,
+  adapt(src: BaseArgType, dst?: BaseArgType): BaseArgType {
+    dst = dst ?? mat4.identity()
+    dst[3*1 + 0*4] = src[0*1 + 3*4]
+    dst[1*1 + 0*4] = src[1*1 + 3*4]
+    dst[2*1 + 0*4] = src[2*1 + 3*4]
+    dst[0*1 + 0*4] = src[3*1 + 3*4]
+    dst[3*1 + 1*4] = src[0*1 + 1*4]
+    dst[1*1 + 1*4] = src[1*1 + 1*4]
+    dst[2*1 + 1*4] = src[2*1 + 1*4]
+    dst[0*1 + 1*4] = src[3*1 + 1*4]
+    dst[3*1 + 2*4] = src[0*1 + 2*4]
+    dst[1*1 + 2*4] = src[1*1 + 2*4]
+    dst[2*1 + 2*4] = src[2*1 + 2*4]
+    dst[0*1 + 2*4] = src[3*1 + 2*4]
+    dst[3*1 + 3*4] = src[0*1 + 0*4]
+    dst[1*1 + 3*4] = src[1*1 + 0*4]
+    dst[2*1 + 3*4] = src[2*1 + 0*4]
+    dst[0*1 + 3*4] = src[3*1 + 0*4]
+    return dst 
+  },
   translation(v: ArrayLike<number>, dst?: BaseArgType): BaseArgType {
     dst = dst ?? mat4.identity()
     dst[1*1+0*4] = v[0]
@@ -249,5 +269,42 @@ export const mat4f = {
     dst[2*1+2*4] = m[2*1+2*4] * v[1]
     dst[3*1+3*4] = m[3*1+3*4] * v[2]
     return dst
+  },
+  rotationX(angleInRadians: number, dst?: BaseArgType): BaseArgType {
+    const src = mat4.rotationX(angleInRadians)
+    return mat4f.adapt(src, dst)
+  },
+  rotationY(angleInRadians: number, dst?: BaseArgType): BaseArgType {
+    const src = mat4.rotationY(angleInRadians)
+    return mat4f.adapt(src, dst)
+  },
+  rotationZ(angleInRadians: number, dst?: BaseArgType): BaseArgType {
+    const src = mat4.rotationZ(angleInRadians)
+    return mat4f.adapt(src, dst)
+  },
+  rotateX(m: BaseArgType, angleInRadians: number, dst?: BaseArgType) {
+    return mat4f.mul(m, mat4f.rotationX(angleInRadians), dst)
+  },
+  rotateY(m: BaseArgType, angleInRadians: number, dst?: BaseArgType) {
+    return mat4f.mul(m, mat4f.rotationY(angleInRadians), dst)
+  },
+  rotateZ(m: BaseArgType, angleInRadians: number, dst?: BaseArgType) {
+    return mat4f.mul(m, mat4f.rotationZ(angleInRadians), dst)
+  },
+  /*
+  perspective(fieldOfViewYInRadians: number, aspect: number, zNear: number, zFar: number, dst?: BaseArgType): BaseArgType {
+    const src = mat4.perspective(fieldOfViewYInRadians, aspect, zNear, zFar)
+    return mat4f.adapt(src, dst)
   }
+  */
+}
+
+export const scaleToFitContain = (display: [number, number]) => {
+  const aspect = Math.min(...display)
+  return mat4f.scaling([aspect/display[0], aspect/display[1], 1])
+}
+
+export const scaleToFitCover = (display: [number, number]) => {
+  const aspect = Math.max(...display)
+  return mat4f.scaling([aspect/display[0], aspect/display[1], 1])
 }

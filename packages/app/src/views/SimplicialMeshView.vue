@@ -6,7 +6,7 @@ import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
 import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
 
-import CodeEditor from '@/components/CodeEditor.vue'
+import CodeEditor from '@/components/MonacoEditor.vue'
 import ShareLinkButton from '@/components/ShareLinkButton.vue'
 import ToggleDarkButton from '@/components/ToggleDarkButton.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'

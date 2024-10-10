@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['update:modelValue'])
 
-const value = useVModel(props, 'modelValue', emit)
+const modelValue = useVModel(props, 'modelValue', emit)
 
 const elementRef = ref<HTMLElement>()
 
@@ -36,15 +36,15 @@ onMounted(() => {
   if(domElement) {
     editor = monaco.editor.create(domElement, {
       ...options,
-      value: value.value,  
+      value: modelValue.value,  
     })
     editor.onDidChangeModelContent(() => {
-      value.value = editor.getValue()
+      modelValue.value = editor.getValue()
     })
   }
 })
 
-watch(value, (value) => {
+watch(modelValue, (value) => {
   if (editor) {
       if (value !== editor.getValue()) {
         editor.setValue(value)

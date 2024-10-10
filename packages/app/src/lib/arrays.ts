@@ -1,5 +1,6 @@
 import type {Maybe, Morphism} from "@/lib/types"
 
+import * as G from "@/lib/generators"
 import * as M from "@/lib/monoids"
 
 export * from "@/lib/functors/arrays"
@@ -18,8 +19,15 @@ export const range: (lower: number, upper: number) => Array<number> = (lower, up
   return from((i) => lower + i, length)
 }
 
+export const rangeInclusive: (lower: number, upper: number) => Array<number> = (lower, upper) => range(lower, upper+1)
+
 export const linspace: (lower: number, upper: number, length: number) => Array<number> = (lower, upper, length) => {
   const step = (upper - lower)/length
+  return from((i) => lower + i*step, length)
+}
+
+export const linspaceInclusive: (lower: number, upper: number, length: number) => Array<number> = (lower, upper, length) =>{
+  const step = (upper - lower)/(length-1)
   return from((i) => lower + i*step, length)
 }
 
@@ -38,6 +46,10 @@ export const reduce: <S,T>(m: M.LeftMonoid<S,T>) => Morphism<Array<S>, T> = ({ap
   }
 }
 
+export const cumulative: <S,T>(m: M.LeftMonoid<S,T>) => Morphism<Array<S>, Array<T>> = (m) => {
+  return (xs) => Array.from(G.cumulative(m)(G.fromArray(xs)))
+}
+
 export const all: (values: Array<boolean>) => boolean = reduce(M.And)
 export const any: (values: Array<boolean>) => boolean = reduce(M.Or)
 
@@ -46,6 +58,9 @@ export const product: (values: Array<number>) => number = reduce(M.Mul)
 
 export const minimum: (values: Array<number>) => number = reduce(M.Min)
 export const maximum: (values: Array<number>) => number = reduce(M.Max)
+
+export const cumSum: (values: Array<number>) => Array<number> = cumulative(M.Add)
+export const cumProduct: (values: Array<number>) => Array<number> = cumulative(M.Mul)
 
 export const CartesianMul: <T>() => M.LeftMonoid<Array<T>, Array<Array<T>>> = () => ({
   append: (x, y) => x.flatMap((d) => y.map((e) => [...d, e])),

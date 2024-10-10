@@ -5,6 +5,8 @@ import * as M from "@/lib/monoids"
 export * from "@/lib/functors/generators"
 export * from "@/lib/operators/generators"
 
+export const fromArray: <T>(xs: Array<T>) => Generator<T> = function*(xs) { yield* xs }
+
 export const reduce: <S,T>(m: M.LeftMonoid<S,T>) => Morphism<Generator<S>, T> = ({append, empty}) => {
   return (xs) => {
     let result = empty()

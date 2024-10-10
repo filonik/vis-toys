@@ -6,7 +6,7 @@ import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
 import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
 
-import CodeEditor from '@/components/CodeEditor.vue'
+import CodeEditor from '@/components/MonacoEditor.vue'
 import ShareLinkButton from '@/components/ShareLinkButton.vue'
 import ToggleDarkButton from '@/components/ToggleDarkButton.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
@@ -280,8 +280,6 @@ const renderer: WebGpuResource = {
       strokeWidth: state.material.strokeWidth,
     })
 
-    uShape.set({})
-
     device.queue.writeBuffer(camera, 0, uCamera.arrayBuffer);
     device.queue.writeBuffer(material, 0, uMaterial.arrayBuffer);
     device.queue.writeBuffer(shape, 0, uShape.arrayBuffer);
@@ -458,7 +456,4 @@ watch(stateRef, save, { immediate: true })
 </template>
 
 <style scoped>
-.tab {
-  @apply px-2 text-sm border-b-2 border-background focus:outline-none focus:ring-0 ui-selected:border-blue-500;
-}
 </style>
