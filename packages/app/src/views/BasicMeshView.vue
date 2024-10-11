@@ -7,7 +7,7 @@ import { useClipboard, useDark, useEventListener, useToggle } from '@vueuse/core
 import { SunIcon, MoonIcon, ShareIcon } from '@heroicons/vue/24/solid'
 import { ArrowUpOnSquareIcon } from '@heroicons/vue/24/outline'
 
-import CodeEditor from '@/components/CodeEditor.vue'
+import CodeEditor from '@/components/MonacoEditor.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
 import type { HTMLElementEventListenerMap, WebGpuResource, WebGpuState, UseWebGpuOptions } from "@/composables/useWebGpu"
@@ -20,65 +20,78 @@ import { matf, mat4x4f, range } from "@/mat"
 
 const route = useRoute()
 
-const base64UrlEncode: (str: string) => string = (value) => {
+const base64UrlEncode: (value: string) => string = (value) => {
   return btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-const base64UrlDecode: (value: string)=> string = (value) => {
+const base64UrlDecode: (value: string) => string = (value) => {
   return atob(value.replace(/-/g, '+').replace(/_/g, '/'));
 }
 
 type Mesh<T> = {
   vertices: Array<T>,
-  indices: Array<number>,
-  topology: number,
+  indices: Record<number, Array<number>>,
 }
 
 type BasicVertex = {
   transform: Float32Array,
-  color: Array<number>
+  distance: Array<number>,
+  fill: Array<number>,
+  stroke: Array<number>
 }
 
 type BasicMesh = Mesh<BasicVertex>;
 
+type Lazy<T> = () => T
+type DecodeJson<T> = (value: any) => T
+type EncodeJson<T> = (value: T) => any
+
 const empty: <T>() => Array<T> = () => []
 
+const withDefault: <T>(f: DecodeJson<T>, defaultValue: Lazy<T>) => DecodeJson<T> = (f, defaultValue) => (value) => value? f(value): defaultValue()
+
+const ColorParser: DecodeJson<Array<number>> = (value) => Array.isArray(value)? value: chroma(value).gl()
+
 const BasicVertexParser: {
-  transform: (value: any, defaultValue: () => Float32Array) => Float32Array,
-  color: (value: any, defaultValue: () => Array<number>) => Array<number>,
+  transform: DecodeJson<Float32Array>,
+  distance: DecodeJson<Array<number>>,
+  fill: DecodeJson<Array<number>>,
+  stroke: DecodeJson<Array<number>>,
 } = {
-  transform: (value, defaultValue) => value ?? defaultValue(),
-  color: (value, defaultValue) => value? (Array.isArray(value)? value: chroma(value).gl()): defaultValue(),
+  transform: (value) => Float32Array.from({length: 4*4}, (i: number) => value[i]),
+  distance: (value) => value,
+  fill: ColorParser,
+  stroke: ColorParser,
 }
 
 const BasicMeshParser: {
-  vertices: (value: any, defaultValue: () => Array<BasicVertex>) => Array<BasicVertex>,
-  indices: (value: any, defaultValue: () => Array<number>) => Array<number>,
-  topology: (value: any) => number,
+  vertices: DecodeJson<Array<BasicVertex>>,
+  indices: DecodeJson<Record<number, Array<number>>>,
 } = {
-  vertices: (value, defaultValue) => value?.map((vertex: any) => ({
-    transform: BasicVertexParser.transform(vertex.transform, () => {
-      if (vertex.transform) {
-        return Float32Array.from({length: 4*4}, (i: number) => vertex.transform[i])
-      }
+  vertices: (value) => value?.map((vertex: any) => ({
+    transform: withDefault(BasicVertexParser.transform, () => {
       return mat4x4f.T(vertex.position).data
-    }),
-    color: BasicVertexParser.color(vertex.color, empty),
-  })) ?? defaultValue(),
-  indices: (value, defaultValue) => value ?? defaultValue(),
-  topology: (value) => value ?? 0,
+    })(vertex.transform),
+    distance: withDefault(BasicVertexParser.distance, empty)(vertex.distance),
+    fill: withDefault(BasicVertexParser.fill, () => {
+      return withDefault(ColorParser, empty)(vertex.color)
+    })(vertex.fill),
+    stroke: withDefault(BasicVertexParser.stroke,  () => {
+      return withDefault(ColorParser, empty)(vertex.color)
+    })(vertex.stroke),
+  })),
+  indices: (value) => value,
 }
 
 // Topology <-> Type?
 const defaultSource = `{
-  "topology": 2,
   "vertices": [
-    {"position": [-0.5, -0.5], "color": "red"},
-    {"position": [-0.5, 0.5], "color": "green"},
-    {"position": [0.5, -0.5], "color": "blue"},
-    {"position": [0.5, 0.5], "color": "yellow"}
+    {"position": [-0.5, -0.5], "distance": [1,0,0,1], "color": "red"},
+    {"position": [-0.5, 0.5], "distance": [1,1,0,0], "color": "green"},
+    {"position": [0.5, -0.5], "distance": [0,0,1,1], "color": "blue"},
+    {"position": [0.5, 0.5], "distance": [0,1,1,0], "color": "yellow"}
   ],
-  "indices": [0, 1, 2, 1, 2, 3]
+  "indices": {"2": [0, 1, 2, 1, 2, 3]}
 }`
 
 const unArray = <T>(value: T|Array<T>) => Array.isArray(value)? value[0]: value
@@ -90,9 +103,10 @@ const sourceFromQuery: (value: string | null, defaultSource: string) => string =
 const jsonFromString: (value: string) => any = JSON5.parse
 
 const basicMeshFromJson: (value: any) => BasicMesh = (value) => ({
-  vertices: BasicMeshParser.vertices(value.vertices, empty),
-  indices: BasicMeshParser.indices(value.indices, () => range(0, value.vertices?.length ?? 0)),
-  topology: BasicMeshParser.topology(value.topology),
+  vertices: withDefault(BasicMeshParser.vertices, empty<BasicVertex>)(value.vertices),
+  indices: withDefault(BasicMeshParser.indices, () => ({
+    "0": range(0, value.vertices?.length ?? 0)
+  }))(value.indices)
 })
 
 const state = reactive({
@@ -138,7 +152,7 @@ const PRIMITIVE_TOPOLOGIES: Record<number, GPUPrimitiveTopology> = {
 }
 
 const BASIC_VERTEX_LAYOUT: GPUVertexBufferLayout =  {
-  arrayStride: 5*4*4,
+  arrayStride: 7*4*4,
   attributes: [
     {
       shaderLocation: 0, // VertexIn.transform0
@@ -161,8 +175,18 @@ const BASIC_VERTEX_LAYOUT: GPUVertexBufferLayout =  {
       format: 'float32x4'
     },
     {
-      shaderLocation: 4, // VertexIn.color
+      shaderLocation: 4, // VertexIn.distance
       offset: 4*4*4,
+      format: 'float32x4'
+    },
+    {
+      shaderLocation: 5, // VertexIn.fill
+      offset: 5*4*4,
+      format: 'float32x4'
+    },
+    {
+      shaderLocation: 6, // VertexIn.stroke
+      offset: 6*4*4,
       format: 'float32x4'
     }
   ]
@@ -192,10 +216,18 @@ const writeVertexData: (
     out[j + 13] = data[i].transform[13] ?? 0.0
     out[j + 14] = data[i].transform[14] ?? 0.0
     out[j + 15] = data[i].transform[15] ?? 1.0
-    out[j + 16] = data[i].color[0] ?? 1.0
-    out[j + 17] = data[i].color[1] ?? 1.0
-    out[j + 18] = data[i].color[2] ?? 1.0
-    out[j + 19] = data[i].color[3] ?? 1.0
+    out[j + 16] = data[i].distance[0] ?? 0.0
+    out[j + 17] = data[i].distance[1] ?? 0.0
+    out[j + 18] = data[i].distance[2] ?? 0.0
+    out[j + 19] = data[i].distance[3] ?? 0.0
+    out[j + 20] = data[i].fill[0] ?? 1.0
+    out[j + 21] = data[i].fill[1] ?? 1.0
+    out[j + 22] = data[i].fill[2] ?? 1.0
+    out[j + 23] = data[i].fill[3] ?? 1.0
+    out[j + 24] = data[i].stroke[0] ?? 1.0
+    out[j + 25] = data[i].stroke[1] ?? 1.0
+    out[j + 26] = data[i].stroke[2] ?? 1.0
+    out[j + 27] = data[i].stroke[3] ?? 1.0
   }
 }
 
@@ -224,7 +256,7 @@ const mesh: {
     if (!value) return null
 
     const vertexCount: number = value.vertices.length
-    const vertexStride: number = 5*4
+    const vertexStride: number = 7*4
 
     const vertexData = new Float32Array(vertexCount * vertexStride)
 
@@ -237,12 +269,17 @@ const mesh: {
 
     device.queue.writeBuffer(vertexBuffer, 0, vertexData)
 
-    const indexCount: number = value.indices.length
+    const topologies: Array<number> = Object.keys(value.indices).map((i) => +i)
+    const topology = Math.max(...topologies)
+
+    const indices = value.indices[topology]
+
+    const indexCount: number = indices.length
     const indexStride: number = 1
 
     const indexData = new Uint32Array(indexCount * indexStride)
 
-    writeIndexData(indexData, value.indices, 0, indexStride)
+    writeIndexData(indexData, indices, 0, indexStride)
 
     const indexBuffer = device.createBuffer({
       size: indexData.byteLength,
@@ -250,8 +287,6 @@ const mesh: {
     })
 
     device.queue.writeBuffer(indexBuffer, 0, indexData)
-
-    const topology = value.topology
 
     return { vertexBuffer, vertexCount, indexBuffer, indexCount, topology }
   },
@@ -325,7 +360,7 @@ const renderer: WebGpuResource = {
     const aspect = Math.min(width, height)
     displayValues.set([1,1], aspect/width)
     displayValues.set([2,2], aspect/height)
-    console.log(displayValues)
+    //console.log("onResize", displayValues)
   },
   onRender(args) {
     const {device, context} = args
@@ -471,12 +506,11 @@ watch(
     save()
   }
 )
-
 </script>
 
 <template>
   <header class="flex flex-row items-center h-12 p-1 border-b-2 border-border">
-    <h1 class="px-2 text-lg">Mesh</h1>
+    <h1 class="px-2">Simplicial Mesh</h1>
     <span class="flex-grow"></span>
     <button class="rounded-lg p-2" type="button" @click="copy()" >
       <ArrowUpOnSquareIcon class="w-5 h-5"/>

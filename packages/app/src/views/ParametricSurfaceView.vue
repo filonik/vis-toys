@@ -494,16 +494,16 @@ watch(stateRef, save, { immediate: true })
           <WebGpuCanvas class="h-full w-full object-cover" :renderer :listeners :options/>
         </Suspense>
         <div class="p-2">
-          <h2 class="text-lg">Domains</h2>
+          <h2 class="my-2 text-lg">Domains</h2>
           <div class="flex flex-row items-center gap-2">
-            <span class="text-sm">x0:</span>
-            <input class="w-16" name="domain00" type="number" v-model="state.domains[0][0]"/>
-            <input class="w-16" name="domain01" type="number" v-model="state.domains[0][1]"/>
+            <span class="w-8 text-sm text-right">x0:</span>
+            <input class="w-16" name="domain00" type="number" step="0.1" v-model="state.domains[0][0]"/>
+            <input class="w-16" name="domain01" type="number" step="0.1" v-model="state.domains[0][1]"/>
           </div>
           <div class="flex flex-row items-center gap-2">
-            <span class="text-sm">x1:</span>
-            <input class="w-16" name="domain10" type="number" v-model="state.domains[1][0]"/>
-            <input class="w-16" name="domain11" type="number" v-model="state.domains[1][1]"/>
+            <span class="w-8 text-sm text-right">x1:</span>
+            <input class="w-16" name="domain10" type="number" step="0.1" v-model="state.domains[1][0]"/>
+            <input class="w-16" name="domain11" type="number" step="0.1" v-model="state.domains[1][1]"/>
           </div>
         </div>
       </TabPanel>
