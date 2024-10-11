@@ -10,6 +10,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["@webgpu/types"]
+    "types": ["@webgpu/types"],
+    //"target": "ESNext",
+    "lib": ["DOM", "ESNext", "ESNext.String"]
   }
 }

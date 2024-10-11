@@ -12,23 +12,57 @@ import ToggleDarkButton from '@/components/ToggleDarkButton.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
 import { PRIMITIVES } from "@/lib/loaders/meshes"
+import { importMath } from "@/lib/shaders"
 
 import * as wgh from 'webgpu-utils'
+//import { WgslReflect } from 'wgsl_reflect'
 
 import * as A from "@/lib/arrays"
 
-import { mat4f, scaleToFitContain } from "@/lib/tensors"
+import { mat4f } from "@/lib/tensors"
 
 //http://localhost:5173/#/parametric-surface/?state=e3NvdXJjZTonQHBsb3RcbmZuIGYoeDogdmVjMmYpIC0-IHZlYzNmIHtcbiAgcmV0dXJuIHZlYzNmKFxuICAgIHNpbih4WzBdKSxcbiAgICBjb3MoeFswXSkqc2luKHhbMV0pLFxuICAgIGNvcyh4WzBdKSpjb3MoeFsxXSksXG4gICk7XG59XG4nLG1hdGVyaWFsOntmaWxsOicjZmZmZmZmJyxzdHJva2U6JyM4ODg4ODgnLHN0cm9rZVdpZHRoOjEwfX0
 
+/*
 const DEFAULT_SOURCE = `@plot
 fn f(x: vec2f) -> vec3f {
   return vec3f(x, sin(x[0])*cos(x[1]));
 }`
+*/
+const DEFAULT_SOURCE = `@plot
+fn f(x: f32) -> vec2f {
+  return vec2f(x, sin(x));
+}
+
+@plot
+fn g(x: f32) -> vec2f {
+  return vec2f(x, cos(x));
+}`
+
+type TypeInfo = {
+  name: string
+}
+
+type FunctionInfo = {
+  name: string
+  domain: TypeInfo
+  codomain: TypeInfo
+}
+
+type SourceInfo = {
+  functions: Array<FunctionInfo>
+}
+
+type Extent = [Array<number>, Array<number>]
 
 type State = {
   source: string
-  domains: Array<[number, number]>
+  output: {
+    functions: Array<{
+      name: string,
+      extent: Extent
+    }>
+  },
   material: {
     fill: string
     stroke: string
@@ -38,11 +72,9 @@ type State = {
 
 const stateRef = ref<State>({
   source: DEFAULT_SOURCE,
-  domains: [
-    [-Math.PI,+Math.PI],
-    [-Math.PI,+Math.PI],
-    [-Math.PI,+Math.PI],
-  ],
+  output: {
+    functions: []
+  },
   material: {
     fill: "#ffffff",
     stroke: "#888888",
@@ -62,25 +94,38 @@ struct CameraData {
 @group(0) @binding(0) var<uniform> uCamera: CameraData;`
 
 const surfaceSource: (n: number, m: number) => string = (n,m) => {
-  if (n == 1 && m == 3) {
-    return `fn surface(position: vec4f) -> vec4f {
-  return vec4(1.0, f(position.y))
-}`
+  const inputFragment: (n: number) => string = (n) => {
+    switch (n) {
+      case 1:
+        return "position.y"
+      case 2:
+        return "position.yz"
+      case 3:
+        return "position.yzw"
+      default:
+        return "0.0"
+    }
   }
-  if (n == 2 && m == 3) {
-    return `fn surface(position: vec4f) -> vec4f {
-  return vec4(1.0, f(position.yz));
-}`
+  const outputFragment: (m: number) => (x: string) => string = (m) => (x) => {
+    switch (m) {
+      case 1:
+        return `vec4(1.0, ${x}, 0.0, 0.0)`
+      case 2:
+        return `vec4(1.0, ${x}, 0.0)`
+      case 3:
+        return `vec4(1.0, ${x})`
+      default:
+        return "vec4(1.0, 0.0, 0.0, 0.0)"
+    }
   }
-  if (n == 3 && m == 3) {
-    return `fn surface(position: vec4f) -> vec4f {
-  return vec4(1.0, f(position.yzw));
+  return `fn surface(position: vec4f) -> vec4f {
+  return ${outputFragment(m)(`f(${inputFragment(n)})`)};
 }`
-  }
-  return ""
 }
 
 const shaderSource = (transformSource: string, surfaceSource: string) => `
+${importMath()}
+
 struct VertexIn {
   @location(0) position: vec4f,
   @location(1) color: vec4f,
@@ -127,7 +172,12 @@ fn fragmentMain(in: FragmentIn) -> @location(0) vec4f {
 }
 `
 
-const processedSource = ref("")
+type ProcessedSource = {
+  source: string,
+  info: SourceInfo
+}
+
+const processedSource = ref<ProcessedSource | null>(null)
 
 const defs = wgh.makeShaderDataDefinitions(cameraSource);
 
@@ -140,10 +190,10 @@ uCamera.set({
   model: mat4f.identity(),
 })
 
-type MeshState = {
+type MeshState = Record<number, {
   vertices: wgh.BuffersAndAttributes
   topology: number
-}
+}>
 
 type PipelineState = {
   pipeline: GPURenderPipeline
@@ -151,11 +201,11 @@ type PipelineState = {
   camera: GPUBuffer
 }
 
-type RendererState = {
-}
+type RendererState = {}
 
 const options: UseWebGpuOptions = {
   alphaMode: 'premultiplied',
+  size: [1920, 1080],
   autoResize: false,
 }
 
@@ -214,17 +264,50 @@ const normalGridIndices: (lengths: Array<number>) => Array<Array<number>> = (len
       return segments
     }
     case 2: {
-      const segments0 = A.range(0, lengths[0]).map(
+      const segments0 = A.range(0, lengths[0]).flatMap(
         (i) => A.range(0,lengths[1]-1).map(
           (j) => [i*strides[0]+(j+0)*strides[1], i*strides[0]+(j+1)*strides[1]]
         )
       )
-      const segments1 = A.range(0, lengths[1]).map(
+      const segments1 = A.range(0, lengths[1]).flatMap(
         (j) => A.range(0,lengths[0]-1).map(
           (i) => [(i+0)*strides[0]+j*strides[1], (i+1)*strides[0]+j*strides[1]]
         )
       )
-      return A.concat(segments0.flat(1), segments1.flat(1))
+      return A.concat(segments0, segments1)
+    }
+    case 3: {
+      const segments0 = A.range(0, lengths[0]).flatMap(
+        (i) => A.range(0, lengths[1]).flatMap(
+          (j) => A.range(0,lengths[2]-1).map(
+            (k) => [
+              i*strides[0]+j*strides[1]+(k+0)*strides[2],
+              i*strides[0]+j*strides[1]+(k+1)*strides[2],
+            ]
+          )
+        )
+      )
+      const segments1 = A.range(0, lengths[0]).flatMap(
+        (i) => A.range(0, lengths[2]).flatMap(
+          (k) => A.range(0,lengths[1]-1).map(
+            (j) => [
+              i*strides[0]+(j+0)*strides[1]+k*strides[2],
+              i*strides[0]+(j+1)*strides[1]+k*strides[2],
+            ]
+          )
+        )
+      )
+      const segments2 = A.range(0, lengths[1]).flatMap(
+        (j) => A.range(0, lengths[2]).flatMap(
+          (k) => A.range(0,lengths[0]-1).map(
+            (i) => [
+              (i+0)*strides[0]+j*strides[1]+k*strides[2],
+              (i+1)*strides[0]+j*strides[1]+k*strides[2],
+            ]
+          )
+        )
+      )
+      return A.concat(segments0, segments1, segments2)
     }
   }
 
@@ -255,34 +338,81 @@ const normalGridArrays: (lengths: Array<number>) => wgh.Arrays = (lengths) => {
   }
 }
 
+const gridSizes = (n: number) => [
+  [],
+  [Math.pow(n, 3*2)],
+  [Math.pow(n, 3), Math.pow(n, 3)],
+  [Math.pow(n, 2), Math.pow(n, 2), Math.pow(n, 2)]
+]
+
 const mesh = statefulResource<MeshState>({
   create({device}) {
-    const arrays = normalGridArrays([51,51])
-    const vertices = wgh.createBuffersAndAttributesFromArrays(device, arrays, {
-      shaderLocation: 0,
-      stepMode: 'vertex',
-      interleave: true,
+    const arrays = gridSizes(3).map(normalGridArrays)
+    return arrays.map((a) => {
+      const vertices = wgh.createBuffersAndAttributesFromArrays(device, a, {
+        shaderLocation: 0,
+        stepMode: 'vertex',
+        interleave: true,
+      })
+      const topology = 1
+      return {vertices, topology}
     })
-    const topology = 1
-    return {vertices, topology}
   },
   delete({device}, value) {
     // TODO: Destroy buffers.
   },
 })
 
+const elementCount: (t: TypeInfo) => number = (t) => {
+  switch (t.name) {
+    case "f32":
+      return 1
+    case "vec2f":
+      return 2
+    case "vec3f":
+      return 3
+    case "vec4f":
+      return 4
+  }
+  return 0
+}
+
+const functionShape: (f: FunctionInfo) => [number,number] = (f) => {
+  return [
+    elementCount(f.domain),
+    elementCount(f.codomain)
+  ]
+}
+
+const defaultExtent: (f: FunctionInfo) => Extent = (f) => {
+  const n = elementCount(f.domain)
+  return [A.full(-1, n), A.full(+1, n)]
+}
+
+const remapExtent: (extent: Extent) => any = (extent) => {
+  const t = A.divs(A.add(extent[0], extent[1]), 2.0)
+  const s = A.divs(A.sub(extent[0], extent[1]), 2.0)
+  return mat4f.st(s, t)
+}
+
 const pipeline = statefulResource<PipelineState>({
   create({device, format}) {
+    if (!processedSource.value) return null
+
+    const {source, info} = processedSource.value
+
+    const [m,n] = functionShape(info.functions[0])
+    
     const module = device.createShaderModule({
       code: shaderSource(
-        processedSource.value,
-        surfaceSource(2,3)
+        source,
+        surfaceSource(m,n)
       )
     })
 
     if (!mesh.state) return null
 
-    const {vertices} = mesh.state
+    const {vertices} = mesh.state[m]
 
     const pipeline = device.createRenderPipeline({
       layout: 'auto',
@@ -323,6 +453,8 @@ const pipeline = statefulResource<PipelineState>({
     // TODO
   }
 })
+
+
 
 const renderer: WebGpuResource & {state: RendererState | null} = {
   state: null,
@@ -369,14 +501,19 @@ const renderer: WebGpuResource & {state: RendererState | null} = {
 
     //pass.setViewport(0, 0, display[0], display[1], 0, 1)
 
-    const {pipeline: gpuPipeline, camera, bindGroup} = pipeline.state
-    const {vertices} = mesh.state
+    if (!processedSource.value) return null
 
-    mat4f.scaling([
-      (state.domains[0][1] - state.domains[0][0])/2.0,
-      (state.domains[1][1] - state.domains[1][0])/2.0,
-      (state.domains[2][1] - state.domains[2][0])/2.0,
-    ], uCamera.views.model)
+    const {info} = processedSource.value
+
+    const [m,n] = functionShape(info.functions[0])
+
+    const {pipeline: gpuPipeline, camera, bindGroup} = pipeline.state
+    
+    const {vertices} = mesh.state[m]
+
+    const f = state.output.functions[0]
+
+    uCamera.set({model: remapExtent(f.extent)})
 
     device.queue.writeBuffer(camera, 0, uCamera.arrayBuffer);
 
@@ -441,12 +578,44 @@ const listeners: HTMLElementEventListenerMap = {
   }
 }
 
-const process = (source: string) => {
-  return source.replace("@plot", "/*@plot*/");
+// TODO: I really whish I could use wgsl_reflect for this...
+const reflect: (source: string) => SourceInfo = (source) => {
+  const re = /@plot\s+fn\s+(?<name>\w+)\s*\(\w+:\s*(?<domain>\w+)\)\s*->\s*(?<codomain>\w+)/g
+  const functions: Array<FunctionInfo> = []
+  let match
+  do {
+    match = re.exec(source);
+    if (match && match.groups) {
+      functions.push({
+        name: match.groups.name,
+        domain: {
+          name: match.groups.domain,
+        },
+        codomain: {
+          name: match.groups.codomain,
+        },
+      })
+    }
+  } while (match);
+  return { functions }
+}
+
+const process: (source: string) => ProcessedSource = (source) => {
+  return {
+    source: source.replaceAll("@plot", "/*@plot*/"),
+    info: reflect(source)
+  }
 }
 
 const save = (state: State) => {
-  processedSource.value = process(state.source)
+  const result = process(state.source)
+  processedSource.value = result
+  state.output = {
+    functions: result.info.functions.map((f) => ({
+      name: f.name,
+      extent: defaultExtent(f)
+    }))
+  }
   pipeline.valid = false
 }
 
@@ -486,24 +655,33 @@ watch(stateRef, save, { immediate: true })
       <Tab class="tab">Output</Tab>
     </TabList>
     <TabPanels class="h-full md:grid md:grid-cols-2 border-y-2 border-border">
-      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-1" :static="true">
+      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-1 overflow-hidden" :static="true">
         <CodeEditor v-model="state.source"/>
       </TabPanel>
-      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2" :static="true">
+      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2 overflow-hidden" :static="true">        
         <Suspense>
-          <WebGpuCanvas class="h-full w-full object-cover" :renderer :listeners :options/>
-        </Suspense>
-        <div class="p-2">
-          <h2 class="my-2 text-lg">Domains</h2>
-          <div class="flex flex-row items-center gap-2">
-            <span class="w-8 text-sm text-right">x0:</span>
-            <input class="w-16" name="domain00" type="number" step="0.1" v-model="state.domains[0][0]"/>
-            <input class="w-16" name="domain01" type="number" step="0.1" v-model="state.domains[0][1]"/>
+          <div class="flex flex-row items-center justify-center overflow-hidden">
+            <WebGpuCanvas :renderer :listeners :options/>
           </div>
-          <div class="flex flex-row items-center gap-2">
-            <span class="w-8 text-sm text-right">x1:</span>
-            <input class="w-16" name="domain10" type="number" step="0.1" v-model="state.domains[1][0]"/>
-            <input class="w-16" name="domain11" type="number" step="0.1" v-model="state.domains[1][1]"/>
+        </Suspense>
+        <div class="flex flex-col p-2">
+          <div v-for="f of state.output.functions">
+            <h2 class="my-2 text-lg">{{f.name}}</h2>
+            <div v-if="f.extent[0].length>0" class="flex flex-row items-center gap-2">
+              <span class="w-8 text-xs text-right font-mono">x[0]:</span>
+              <input class="w-16" name="domain00" type="number" step="0.1" v-model="f.extent[0][0]"/>
+              <input class="w-16" name="domain01" type="number" step="0.1" v-model="f.extent[1][0]"/>
+            </div>
+            <div v-if="f.extent[0].length>1" class="flex flex-row items-center gap-2">
+              <span class="w-8 text-xs text-right font-mono">x[1]:</span>
+              <input class="w-16" name="domain10" type="number" step="0.1" v-model="f.extent[0][1]"/>
+              <input class="w-16" name="domain11" type="number" step="0.1" v-model="f.extent[1][1]"/>
+            </div>
+            <div v-if="f.extent[0].length>2" class="flex flex-row items-center gap-2">
+              <span class="w-8 text-xs text-right font-mono">x[2]:</span>
+              <input class="w-16" name="domain10" type="number" step="0.1" v-model="f.extent[0][2]"/>
+              <input class="w-16" name="domain11" type="number" step="0.1" v-model="f.extent[1][2]"/>
+            </div>
           </div>
         </div>
       </TabPanel>

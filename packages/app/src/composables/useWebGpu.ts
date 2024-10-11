@@ -19,6 +19,7 @@ export type WebGpuState = {
 export type UseWebGpuOptions = {
   alphaMode?: GPUCanvasAlphaMode
   format?: GPUTextureFormat
+  size?: [number, number]
   autoResize?: boolean
 }
 

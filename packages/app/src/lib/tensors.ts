@@ -270,6 +270,18 @@ export const mat4f = {
     dst[3*1+3*4] = m[3*1+3*4] * v[2]
     return dst
   },
+  ts(t: ArrayLike<number>, s: ArrayLike<number>, dst?: BaseArgType) {
+    dst = dst ?? mat4f.identity()
+    mat4f.translate(dst, t, dst)
+    mat4f.scale(dst, s, dst)
+    return dst
+  },
+  st(s: ArrayLike<number>, t: ArrayLike<number>, dst?: BaseArgType) {
+    dst = dst ?? mat4f.identity()
+    mat4f.scale(dst, s, dst)
+    mat4f.translate(dst, t, dst)
+    return dst
+  },
   rotationX(angleInRadians: number, dst?: BaseArgType): BaseArgType {
     const src = mat4.rotationX(angleInRadians)
     return mat4f.adapt(src, dst)

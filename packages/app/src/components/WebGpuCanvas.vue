@@ -1,26 +1,27 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import useWebGpu, { type HTMLElementEventListenerMap, type WebGpuResource, type UseWebGpuOptions } from '@/composables/useWebGpu'
 
 export interface Props {
   renderer: WebGpuResource
-  width?: number
-  height?: number
   options?: UseWebGpuOptions
   listeners?: HTMLElementEventListenerMap
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  width: 1920,
-  height: 1080,
-  options: () => ({}),
+  options: () => ({
+    size: [1920, 1080]
+  }),
   listeners: () => ({}),
 })
 
 const canvasRef = ref<HTMLCanvasElement>()
 
 const successRef = ref<boolean>(true);
+
+const width = computed(() => props.options.size?.[0] ?? 1920)
+const height = computed(() => props.options.size?.[1] ?? 1080)
 
 successRef.value = await useWebGpu(canvasRef, props.renderer, props.listeners, props.options)
 </script>
