@@ -9,26 +9,30 @@ import type { HTMLElementEventListenerMap, WebGpuResource, WebGpuState, UseWebGp
 import CodeEditor from '@/components/CodemirrorEditor.vue'
 import ShareLinkButton from '@/components/ShareLinkButton.vue'
 import ToggleDarkButton from '@/components/ToggleDarkButton.vue'
+import ExtentInput from '@/components/ExtentInput.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
 import { PRIMITIVES } from "@/lib/loaders/meshes"
 import { importMath } from "@/lib/shaders"
 
+import chroma from 'chroma-js'
 import * as wgh from 'webgpu-utils'
-//import { WgslReflect } from 'wgsl_reflect'
 
 import * as A from "@/lib/arrays"
 
 import { mat4f } from "@/lib/tensors"
 
+import type { SourceInfo, FunctionInfo } from "@/lib/shaders/utilities"
+import { reflect, elementCount, functionShape } from "@/lib/shaders/utilities"
+
 //http://localhost:5173/#/parametric-surface/?state=e3NvdXJjZTonQHBsb3RcbmZuIGYoeDogdmVjMmYpIC0-IHZlYzNmIHtcbiAgcmV0dXJuIHZlYzNmKFxuICAgIHNpbih4WzBdKSxcbiAgICBjb3MoeFswXSkqc2luKHhbMV0pLFxuICAgIGNvcyh4WzBdKSpjb3MoeFsxXSksXG4gICk7XG59XG4nLG1hdGVyaWFsOntmaWxsOicjZmZmZmZmJyxzdHJva2U6JyM4ODg4ODgnLHN0cm9rZVdpZHRoOjEwfX0
 
-/*
 const DEFAULT_SOURCE = `@plot
 fn f(x: vec2f) -> vec3f {
   return vec3f(x, sin(x[0])*cos(x[1]));
 }`
-*/
+
+/*
 const DEFAULT_SOURCE = `@plot
 fn f(x: f32) -> vec2f {
   return vec2f(x, sin(x));
@@ -38,66 +42,73 @@ fn f(x: f32) -> vec2f {
 fn g(x: f32) -> vec2f {
   return vec2f(x, cos(x));
 }`
-
-type TypeInfo = {
-  name: string
-}
-
-type FunctionInfo = {
-  name: string
-  domain: TypeInfo
-  codomain: TypeInfo
-}
-
-type SourceInfo = {
-  functions: Array<FunctionInfo>
-}
+*/
+/*
+const DEFAULT_SOURCE = `@plot
+fn f(x: vec2f) -> vec3f {
+  return vec3f(x, sink(x[0], x[1]));
+}`
+const DEFAULT_SOURCE = `@plot
+fn f(x: vec1f) -> vec2f {
+  const k = -0.25;
+  return vec2f(
+    sink(k, x[0]),
+    cosk(k, x[0]),
+  );
+}`
+*/
 
 type Extent = [Array<number>, Array<number>]
 
+type Options = {
+  functions: Array<{
+    color: string,
+    extent: Extent
+  }>
+}
+
 type State = {
   source: string
-  output: {
-    functions: Array<{
-      name: string,
-      extent: Extent
-    }>
-  },
-  material: {
-    fill: string
-    stroke: string
-    strokeWidth: number
-  }
+  options: Options
 }
 
 const stateRef = ref<State>({
   source: DEFAULT_SOURCE,
-  output: {
+  options: {
     functions: []
   },
-  material: {
-    fill: "#ffffff",
-    stroke: "#888888",
-    strokeWidth: 10.0,
-  }
 })
 
 const state = toReactive(stateRef)
 
-const cameraSource = `
-struct CameraData {
+const globalUniformSource = `
+struct GlobalData {
   projection: mat4x4f,
   view: mat4x4f,
-  model: mat4x4f,
+  time: f32,
 }
-  
-@group(0) @binding(0) var<uniform> uCamera: CameraData;`
+`
 
-const surfaceSource: (n: number, m: number) => string = (n,m) => {
+const surfaceUniformSource = `
+struct SurfaceData {
+  model: mat4x4f,
+  color: vec4f,
+}
+`
+
+const uniformSource = `
+${globalUniformSource}
+${surfaceUniformSource}
+
+@group(0) @binding(0) var<uniform> uGlobal: GlobalData;
+@group(0) @binding(1) var<uniform> uSurface: SurfaceData;
+`
+
+const surfaceSource: (name: string, shape: [number, number]) => string = (name, [m,n]) => {
   const inputFragment: (n: number) => string = (n) => {
     switch (n) {
       case 1:
-        return "position.y"
+        return "vec1f(position.y)"
       case 2:
         return "position.yz"
       case 3:
@@ -109,7 +120,7 @@ const surfaceSource: (n: number, m: number) => string = (n,m) => {
   const outputFragment: (m: number) => (x: string) => string = (m) => (x) => {
     switch (m) {
       case 1:
-        return `vec4(1.0, ${x}, 0.0, 0.0)`
+        return `vec4(1.0, ${x}[0], 0.0, 0.0)`
       case 2:
         return `vec4(1.0, ${x}, 0.0)`
       case 3:
@@ -119,7 +130,7 @@ const surfaceSource: (n: number, m: number) => string = (n,m) => {
     }
   }
   return `fn surface(position: vec4f) -> vec4f {
-  return ${outputFragment(m)(`f(${inputFragment(n)})`)};
+  return ${outputFragment(n)(`${name}(${inputFragment(m)})`)};
 }`
 }
 
@@ -141,7 +152,7 @@ struct VaryingData {
   color: vec4f,
 }
 
-${cameraSource}
+${uniformSource}
 
 ${transformSource}
 
@@ -149,14 +160,14 @@ ${surfaceSource}
 
 fn fromVertexIn(in: VertexIn) -> VaryingData {
   return VaryingData(
-    uCamera.view * surface(uCamera.model * in.position),
-    in.color,
+    uGlobal.view * surface(uSurface.model * in.position),
+    uSurface.color * in.color,
   );
 }
 
 fn toFragmentIn(in: VaryingData) -> FragmentIn {
   return FragmentIn(
-    uCamera.projection * in.position.yzwx,
+    uGlobal.projection * in.position.yzwx,
     in.color,
   );
 }
@@ -179,29 +190,37 @@ type ProcessedSource = {
 
 const processedSource = ref<ProcessedSource | null>(null)
 
-const defs = wgh.makeShaderDataDefinitions(cameraSource);
+const defs = wgh.makeShaderDataDefinitions(uniformSource);
 
-const uCamera = wgh.makeStructuredView(defs.uniforms.uCamera);
+const uGlobal: wgh.StructuredView = wgh.makeStructuredView(defs.uniforms.uGlobal);
 
-uCamera.set({
+uGlobal.set({
   //transform: scaleToFitContain([1920,1080])
   projection: mat4f.perspective(Math.PI/4, 1920/1080, 0.1, 1000.0),
   view: mat4f.translation([0,0,-3]), ///mat4f.mul(mat4f.translation([0,0,1]), mat4f.rotationY(Math.PI/2)), //mat4f.mul(mat4f.rotationZ(Math.PI/2), mat4f.translation([0,0,-1])),
-  model: mat4f.identity(),
+  //model: mat4f.identity(),
 })
 
-type MeshState = Record<number, {
-  vertices: wgh.BuffersAndAttributes
-  topology: number
-}>
+const uSurfaces: Record<number, wgh.StructuredView> = {} 
 
-type PipelineState = {
-  pipeline: GPURenderPipeline
-  bindGroup: GPUBindGroup
-  camera: GPUBuffer
+type GlobalGpuState = {
+  uniforms: GPUBuffer
 }
 
-type RendererState = {}
+type MeshGpuState = {
+  vertices: wgh.BuffersAndAttributes
+  topology: number
+}
+
+type MeshesGpuState = Record<number, MeshGpuState>
+
+type SurfaceGpuState = {
+  pipeline: GPURenderPipeline
+  bindGroup: GPUBindGroup
+  uniforms: GPUBuffer
+}
+
+type SurfacesGpuState = Record<number, SurfaceGpuState>
 
 const options: UseWebGpuOptions = {
   alphaMode: 'premultiplied',
@@ -345,7 +364,7 @@ const gridSizes = (n: number) => [
   [Math.pow(n, 2), Math.pow(n, 2), Math.pow(n, 2)]
 ]
 
-const mesh = statefulResource<MeshState>({
+const meshes = statefulResource<MeshesGpuState>({
   create({device}) {
     const arrays = gridSizes(3).map(normalGridArrays)
     return arrays.map((a) => {
@@ -363,38 +382,92 @@ const mesh = statefulResource<MeshState>({
   },
 })
 
-const elementCount: (t: TypeInfo) => number = (t) => {
-  switch (t.name) {
-    case "f32":
-      return 1
-    case "vec2f":
-      return 2
-    case "vec3f":
-      return 3
-    case "vec4f":
-      return 4
-  }
-  return 0
-}
-
-const functionShape: (f: FunctionInfo) => [number,number] = (f) => {
-  return [
-    elementCount(f.domain),
-    elementCount(f.codomain)
-  ]
-}
-
-const defaultExtent: (f: FunctionInfo) => Extent = (f) => {
-  const n = elementCount(f.domain)
-  return [A.full(-1, n), A.full(+1, n)]
-}
-
 const remapExtent: (extent: Extent) => any = (extent) => {
   const t = A.divs(A.add(extent[0], extent[1]), 2.0)
   const s = A.divs(A.sub(extent[0], extent[1]), 2.0)
   return mat4f.st(s, t)
 }
 
+const global = statefulResource<GlobalGpuState>({
+  create({device, format}) { 
+    const uniforms = device.createBuffer({
+      size: uGlobal.arrayBuffer.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    return {uniforms}
+  },
+  delete({device}, value) {
+    // TODO
+  }
+})
+
+const surfaces = statefulResource<SurfacesGpuState>({
+  create({device, format}) {
+    if (!global.state) return null
+
+    if (!meshes.state) return null
+
+    if (!processedSource.value) return null
+
+    const {source, info} = processedSource.value
+
+    return info.functions.map((f, i) => {
+      const [m,n] = functionShape(f)
+
+      const module = device.createShaderModule({
+        code: shaderSource(
+          source,
+          surfaceSource(f.name, [m,n])
+        )
+      })
+
+      const {uniforms: globalUniforms} = global.state!
+
+      const {vertices} = meshes.state![m]
+
+      const pipeline = device.createRenderPipeline({
+        layout: 'auto',
+        vertex: {
+          module,
+          entryPoint: 'vertexMain',
+          buffers: vertices.bufferLayouts,
+        },
+        fragment: {
+          module,
+          entryPoint: 'fragmentMain',
+          targets: [{format}],
+        },
+        primitive: {
+          //cullMode: 'back',
+          topology: PRIMITIVES[1],
+        },
+      })
+
+      uSurfaces[i] = wgh.makeStructuredView(defs.uniforms.uSurface);
+
+      const uniforms = device.createBuffer({
+          size: uSurfaces[i].arrayBuffer.byteLength,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+
+      const bindGroup = device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: globalUniforms } },
+          { binding: 1, resource: { buffer: uniforms } },
+          //{ binding: 2, resource: { buffer: shape } },
+          //{ binding: 3, resource: { buffer: layer } },
+        ],
+      })
+
+      return {pipeline, bindGroup, uniforms}
+    })
+  },
+  delete({device}, value) {
+  }
+})
+
+/*
 const pipeline = statefulResource<PipelineState>({
   create({device, format}) {
     if (!processedSource.value) return null
@@ -453,38 +526,39 @@ const pipeline = statefulResource<PipelineState>({
     // TODO
   }
 })
+*/
 
 
-
-const renderer: WebGpuResource & {state: RendererState | null} = {
-  state: null,
+const renderer: WebGpuResource = {
   onCreate(args) {
     console.log("ParametricSurfaceView::onCreate")
 
-    if (renderer.state) return
+    global.onUpdate?.(args)
 
-    mesh.onUpdate?.(args)
+    if (!global.state) return
 
-    if (!mesh.state) return
+    meshes.onUpdate?.(args)
 
-    pipeline.onUpdate?.(args)
+    if (!meshes.state) return
 
-    if (!pipeline.state) return
+    surfaces.onUpdate?.(args)
 
-    renderer.state = {}
+    if (!surfaces.state) return
   },
   onRender(args) {
-    const {device, context} = args
+    const {device, context, timestamp} = args
 
-    if (!renderer.state) return
+    global.onUpdate?.(args)
 
-    mesh.onUpdate?.(args)
+    if (!global.state) return
 
-    if (!mesh.state) return
+    meshes.onUpdate?.(args)
 
-    pipeline.onUpdate?.(args)
+    if (!meshes.state) return
 
-    if (!pipeline.state) return
+    surfaces.onUpdate?.(args)
+
+    if (!surfaces.state) return
 
     const commandEncoder = device.createCommandEncoder()
 
@@ -505,25 +579,38 @@ const renderer: WebGpuResource & {state: RendererState | null} = {
 
     const {info} = processedSource.value
 
-    const [m,n] = functionShape(info.functions[0])
+    const {uniforms: globalUniforms} = global.state
 
-    const {pipeline: gpuPipeline, camera, bindGroup} = pipeline.state
-    
-    const {vertices} = mesh.state[m]
+    uGlobal.set({
+      time: timestamp/1000.0
+    })
 
-    const f = state.output.functions[0]
+    device.queue.writeBuffer(globalUniforms, 0, uGlobal.arrayBuffer);
 
-    uCamera.set({model: remapExtent(f.extent)})
+    info.functions.forEach((f, i) => {
+      const [m,n] = functionShape(f)
 
-    device.queue.writeBuffer(camera, 0, uCamera.arrayBuffer);
+      const fOptions = state.options.functions[i]
 
-    pass.setPipeline(gpuPipeline)
+      const {vertices} = meshes.state![m]
 
-    pass.setBindGroup(0, bindGroup)
+      const {pipeline, bindGroup, uniforms: surfaceUniforms} = surfaces.state![i]
 
-    pass.setVertexBuffer(0, vertices.buffers[0])
-    pass.setIndexBuffer(vertices.indexBuffer!, vertices.indexFormat!)
-    pass.drawIndexed(vertices.numElements)
+      uSurfaces[i].set({
+        model: remapExtent(fOptions.extent),
+        color: chroma(fOptions.color).gl(),
+      })
+
+      device.queue.writeBuffer(surfaceUniforms, 0, uSurfaces[i].arrayBuffer);
+
+      pass.setPipeline(pipeline)
+
+      pass.setBindGroup(0, bindGroup)
+
+      pass.setVertexBuffer(0, vertices.buffers[0])
+      pass.setIndexBuffer(vertices.indexBuffer!, vertices.indexFormat!)
+      pass.drawIndexed(vertices.numElements)
+    })
 
     pass.end()
 
@@ -534,12 +621,9 @@ const renderer: WebGpuResource & {state: RendererState | null} = {
   onDelete(args) {
     console.log("ParametricSurfaceView::Delete")
     
-    if(!renderer.state) return
-    
-    pipeline.onDelete?.(args)
-    mesh.onDelete?.(args)
-
-    renderer.state = null
+    surfaces.onDelete?.(args)
+    meshes.onDelete?.(args)
+    global.onDelete?.(args)
   }
 }
 
@@ -563,8 +647,8 @@ const listeners: HTMLElementEventListenerMap = {
       +event.movementY * 4.0/aspect,
       0
     ]
-    mat4f.rotateZ(uCamera.views.view, delta[0], uCamera.views.view)
-    mat4f.rotateY(uCamera.views.view, delta[1], uCamera.views.view)
+    mat4f.rotateZ(uGlobal.views.view, delta[0], uGlobal.views.view)
+    mat4f.rotateY(uGlobal.views.view, delta[1], uGlobal.views.view)
   },
   pointerup: (event: PointerEvent) => {
     pointerState.down = false
@@ -573,31 +657,9 @@ const listeners: HTMLElementEventListenerMap = {
     //const scale = 1.0 + event.deltaY/100.0
     //mat4f.scale(uCamera.views.transform, [scale, scale, 1], uCamera.views.transform)
     const scale = event.deltaY/100.0
-    mat4f.translate(uCamera.views.view, [0, 0, scale], uCamera.views.view)
+    mat4f.translate(uGlobal.views.view, [0, 0, scale], uGlobal.views.view)
     //mat4f.rotateX(uCamera.views.transform, scale, uCamera.views.transform)
   }
-}
-
-// TODO: I really whish I could use wgsl_reflect for this...
-const reflect: (source: string) => SourceInfo = (source) => {
-  const re = /@plot\s+fn\s+(?<name>\w+)\s*\(\w+:\s*(?<domain>\w+)\)\s*->\s*(?<codomain>\w+)/g
-  const functions: Array<FunctionInfo> = []
-  let match
-  do {
-    match = re.exec(source);
-    if (match && match.groups) {
-      functions.push({
-        name: match.groups.name,
-        domain: {
-          name: match.groups.domain,
-        },
-        codomain: {
-          name: match.groups.codomain,
-        },
-      })
-    }
-  } while (match);
-  return { functions }
 }
 
 const process: (source: string) => ProcessedSource = (source) => {
@@ -607,16 +669,41 @@ const process: (source: string) => ProcessedSource = (source) => {
   }
 }
 
-const save = (state: State) => {
-  const result = process(state.source)
-  processedSource.value = result
-  state.output = {
-    functions: result.info.functions.map((f) => ({
+const defaultExtent: (f: FunctionInfo) => Extent = (f) => {
+  const n = elementCount(f.domain)
+  return [A.full(-1, n), A.full(+1, n)]
+}
+
+const defaultOptions: (result: ProcessedSource) => Options = ({info}) => {
+  return {
+    functions: info.functions.map((f) => ({
       name: f.name,
+      color: "#ffffff",
       extent: defaultExtent(f)
     }))
   }
-  pipeline.valid = false
+}
+
+const mergeOptions: (value: Options, oldValue: Options) => Options = (value, oldValue) => {
+  return {
+    functions: value.functions.map((f, i) => {
+      const g = oldValue.functions[i]
+      return {
+        color: g?.color ?? f.color,
+        extent: [
+          f.extent[0].map((e, i) => g?.extent?.[0]?.[i] ?? e),
+          f.extent[1].map((e, i) => g?.extent?.[1]?.[i] ?? e),
+        ],
+      }
+    })
+  }
+}
+
+const save = (state: State) => {
+  const result = process(state.source)
+  processedSource.value = result
+  state.options = mergeOptions(defaultOptions(result), state.options)
+  surfaces.valid = false
 }
 
 const isShortcutSave: (event: KeyboardEvent) => boolean = (event) => {
@@ -640,6 +727,10 @@ useEventListener(document, 'keydown', (event) => {
 })
 
 watch(stateRef, save, { immediate: true })
+
+const getFunctionInfo: (i: number) => FunctionInfo | undefined = (i) => {
+  return processedSource.value?.info?.functions?.[i]
+}
 </script>
 
 <template>
@@ -658,30 +749,22 @@ watch(stateRef, save, { immediate: true })
       <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-1 overflow-hidden" :static="true">
         <CodeEditor v-model="state.source"/>
       </TabPanel>
-      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2 overflow-hidden" :static="true">        
+      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2 overflow-hidden" :static="true">
         <Suspense>
           <div class="flex flex-row items-center justify-center overflow-hidden">
             <WebGpuCanvas :renderer :listeners :options/>
           </div>
         </Suspense>
         <div class="flex flex-col p-2">
-          <div v-for="f of state.output.functions">
-            <h2 class="my-2 text-lg">{{f.name}}</h2>
-            <div v-if="f.extent[0].length>0" class="flex flex-row items-center gap-2">
-              <span class="w-8 text-xs text-right font-mono">x[0]:</span>
-              <input class="w-16" name="domain00" type="number" step="0.1" v-model="f.extent[0][0]"/>
-              <input class="w-16" name="domain01" type="number" step="0.1" v-model="f.extent[1][0]"/>
-            </div>
-            <div v-if="f.extent[0].length>1" class="flex flex-row items-center gap-2">
-              <span class="w-8 text-xs text-right font-mono">x[1]:</span>
-              <input class="w-16" name="domain10" type="number" step="0.1" v-model="f.extent[0][1]"/>
-              <input class="w-16" name="domain11" type="number" step="0.1" v-model="f.extent[1][1]"/>
-            </div>
-            <div v-if="f.extent[0].length>2" class="flex flex-row items-center gap-2">
-              <span class="w-8 text-xs text-right font-mono">x[2]:</span>
-              <input class="w-16" name="domain10" type="number" step="0.1" v-model="f.extent[0][2]"/>
-              <input class="w-16" name="domain11" type="number" step="0.1" v-model="f.extent[1][2]"/>
-            </div>
+          <div v-for="f, i of state.options.functions" :key="i">
+            <h2 class="flex flex-row items-center text-heading text-lg gap-2 my-2">
+              <input class="w-8 h-8" name="fill" type="color" v-model="f.color"/>
+              {{getFunctionInfo(i)?.name}}: 
+              <span class="text-text text-base">
+                {{getFunctionInfo(i)?.domain?.name}} &rarr; {{getFunctionInfo(i)?.codomain?.name}} 
+              </span>
+            </h2>
+            <ExtentInput v-model="f.extent"></ExtentInput>
           </div>
         </div>
       </TabPanel>
