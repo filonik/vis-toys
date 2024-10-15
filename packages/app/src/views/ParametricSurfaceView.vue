@@ -9,6 +9,7 @@ import type { HTMLElementEventListenerMap, WebGpuResource, WebGpuState, UseWebGp
 import CodeEditor from '@/components/CodemirrorEditor.vue'
 import ShareLinkButton from '@/components/ShareLinkButton.vue'
 import ToggleDarkButton from '@/components/ToggleDarkButton.vue'
+import ToggleVisibleButton from '@/components/ToggleVisibleButton.vue'
 import ExtentInput from '@/components/ExtentInput.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
@@ -25,6 +26,7 @@ import { mat4f } from "@/lib/tensors"
 import type { SourceInfo, FunctionInfo } from "@/lib/shaders/utilities"
 import { reflect, elementCount, functionShape } from "@/lib/shaders/utilities"
 
+//https://filonik.github.io/vis-toys/#/parametric-surface/?state=e3NvdXJjZTonQHBsb3RcbmZuIGYoeDogdmVjMmYpIC0-IHZlYzNmIHtcbiAgbGV0IGggPSAwLjU7XG4gIGxldCB0ID0gdUdsb2JhbC50aW1lO1xuICByZXR1cm4gdmVjM2YoeCwgaCpzaW4oeFswXSt0KSpjb3MoeFsxXSt0KSk7XG59JyxvcHRpb25zOntmdW5jdGlvbnM6W3tjb2xvcjonI2ZmZmZmZicsZXh0ZW50OltbLTMuMTQxNTkyNjUzNTg5NzkzLC0zLjE0MTU5MjY1MzU4OTc5M10sWzMuMTQxNTkyNjUzNTg5NzkzLDMuMTQxNTkyNjUzNTg5NzkzXV19XX19
 //http://localhost:5173/#/parametric-surface/?state=e3NvdXJjZTonQHBsb3RcbmZuIGYoeDogdmVjMmYpIC0-IHZlYzNmIHtcbiAgcmV0dXJuIHZlYzNmKFxuICAgIHNpbih4WzBdKSxcbiAgICBjb3MoeFswXSkqc2luKHhbMV0pLFxuICAgIGNvcyh4WzBdKSpjb3MoeFsxXSksXG4gICk7XG59XG4nLG1hdGVyaWFsOntmaWxsOicjZmZmZmZmJyxzdHJva2U6JyM4ODg4ODgnLHN0cm9rZVdpZHRoOjEwfX0
 
 const DEFAULT_SOURCE = `@plot
@@ -63,7 +65,8 @@ type Extent = [Array<number>, Array<number>]
 type Options = {
   functions: Array<{
     color: string,
-    extent: Extent
+    extent: Extent,
+    visible: boolean
   }>
 }
 
@@ -592,6 +595,8 @@ const renderer: WebGpuResource = {
 
       const fOptions = state.options.functions[i]
 
+      if (!fOptions.visible) return
+
       const {vertices} = meshes.state![m]
 
       const {pipeline, bindGroup, uniforms: surfaceUniforms} = surfaces.state![i]
@@ -679,7 +684,8 @@ const defaultOptions: (result: ProcessedSource) => Options = ({info}) => {
     functions: info.functions.map((f) => ({
       name: f.name,
       color: "#ffffff",
-      extent: defaultExtent(f)
+      extent: defaultExtent(f),
+      visible: true,
     }))
   }
 }
@@ -694,6 +700,7 @@ const mergeOptions: (value: Options, oldValue: Options) => Options = (value, old
           f.extent[0].map((e, i) => g?.extent?.[0]?.[i] ?? e),
           f.extent[1].map((e, i) => g?.extent?.[1]?.[i] ?? e),
         ],
+        visible: g?.visible ?? f.visible,
       }
     })
   }
@@ -759,12 +766,15 @@ const getFunctionInfo: (i: number) => FunctionInfo | undefined = (i) => {
           <div v-for="f, i of state.options.functions" :key="i">
             <h2 class="flex flex-row items-center text-heading text-lg gap-2 my-2">
               <input class="w-8 h-8" name="fill" type="color" v-model="f.color"/>
-              {{getFunctionInfo(i)?.name}}: 
-              <span class="text-text text-base">
-                {{getFunctionInfo(i)?.domain?.name}} &rarr; {{getFunctionInfo(i)?.codomain?.name}} 
+              <span class="flex-grow">
+                {{getFunctionInfo(i)?.name}}: 
+                <span class="text-text text-base">
+                  {{getFunctionInfo(i)?.domain?.name}} &rarr; {{getFunctionInfo(i)?.codomain?.name}} 
+                </span>
               </span>
+              <ToggleVisibleButton v-model="f.visible"/>
             </h2>
-            <ExtentInput v-model="f.extent"></ExtentInput>
+            <ExtentInput v-model="f.extent"/>
           </div>
         </div>
       </TabPanel>
