@@ -32,9 +32,9 @@ const items: Array<{
   name: string,
   value: [number, number],
 }> = [
-  {name: "-1, +1", value: [-1,+1]},
-  {name: "-π, +π", value: [-Math.PI,+Math.PI]},
-  {name: "-π/2, +π/2", value: [-Math.PI/2,+Math.PI/2]},
+  {name: "-1, +1", value: [-1, +1]},
+  {name: "-π, +π", value: [-Math.PI, +Math.PI]},
+  {name: "-π/2, +π/2", value: [-Math.PI/2, +Math.PI/2]},
 ]
 </script>
 
