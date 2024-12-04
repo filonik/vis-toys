@@ -10,13 +10,17 @@ export type HTMLElementEventListenerMap = Partial<{
   [E in keyof HTMLElementEventMap]: GeneralEventListener<HTMLElementEventMap[E]>
 }>;
 
+const clamp = (lower: number, upper:number) => (value: number) => Math.max(lower, Math.min(value, upper))
+
+const clampDistance = clamp(-100.0, -0.1)
+
 export default function useCamera(position?: Array<number>, origin?: Array<number>) {
   const state = reactive({
     isDown: false,
     position: position ?? [-1, 0, 0], // r, theta, phi
     origin: origin ?? [0, 0, 0],
   })
-
+  
   const listeners: HTMLElementEventListenerMap = {
     pointerdown: (event: PointerEvent) => {
       state.isDown = true
@@ -34,8 +38,9 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
         0
       ]
       if (event.altKey || event.metaKey) {
-        state.origin[0] += delta[0]
-        state.origin[1] -= delta[1]
+        const factor = -state.position[0]/(1920/400) // ???
+        state.origin[0] += delta[0]*factor
+        state.origin[1] -= delta[1]*factor
       } else {
         state.position[1] += delta[0]
         state.position[2] += delta[1]
@@ -46,7 +51,7 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
     },
     wheel: (event: WheelEvent) => {
       const delta = event.deltaY/100.0
-      state.position[0] += delta
+      state.position[0] = clampDistance(state.position[0] + delta)
     }
   }
 

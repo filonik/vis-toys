@@ -35,10 +35,12 @@ import * as examples from "@/examples"
 //http://localhost:5173/#/parametric-surface/?state=e3NvdXJjZTonQHBsb3RcbmZuIGYoeDogdmVjMmYpIC0-IHZlYzNmIHtcbiAgcmV0dXJuIHZlYzNmKFxuICAgIHNpbih4WzBdKSxcbiAgICBjb3MoeFswXSkqc2luKHhbMV0pLFxuICAgIGNvcyh4WzBdKSpjb3MoeFsxXSksXG4gICk7XG59XG4nLG1hdGVyaWFsOntmaWxsOicjZmZmZmZmJyxzdHJva2U6JyM4ODg4ODgnLHN0cm9rZVdpZHRoOjEwfX0
 
 const DEFAULT_SOURCE = examples.wave3
+//const DEFAULT_SOURCE = examples.generalSphere2
 
 type Extent = [Array<number>, Array<number>]
 
 type Options = {
+  args: Array<number>
   functions: Array<{
     color: string,
     extent: Extent,
@@ -54,6 +56,7 @@ type State = {
 const stateRef = ref<State>({
   source: DEFAULT_SOURCE,
   options: {
+    args: [0,0,0,0],
     functions: []
   },
 })
@@ -64,6 +67,7 @@ const globalUniformSource = `
 struct GlobalData {
   projection: mat4x4f,
   view: mat4x4f,
+  args: vec4f,
   time: f32,
 }
 `
@@ -177,7 +181,7 @@ uGlobal.set({
   //transform: scaleToFitContain([1920,1080])
   projection: mat4f.perspective(Math.PI/4, 1920/1080, 0.1, 1000.0),
   view: mat4f.translation([0,0,-3]), ///mat4f.mul(mat4f.translation([0,0,1]), mat4f.rotationY(Math.PI/2)), //mat4f.mul(mat4f.rotationZ(Math.PI/2), mat4f.translation([0,0,-1])),
-  //model: mat4f.identity(),
+  args: [0,0,0,0],
 })
 
 const uSurfaces: Record<number, wgh.StructuredView> = {} 
@@ -417,7 +421,8 @@ const pipeline = statefulResource<PipelineState>({
 })
 */
 
-const { listeners, transformInplace } = useCamera([-4, 0, -Math.PI/4])
+const { listeners, transformInplace } = useCamera([-4, 0, 0])
+//const { listeners, transformInplace } = useCamera([-4, 0, -Math.PI/4])
 
 const renderer: WebGpuResource = {
   onCreate(args) {
@@ -472,6 +477,7 @@ const renderer: WebGpuResource = {
     const {uniforms: globalUniforms} = global.state
 
     uGlobal.set({
+      args: state.options.args,
       time: timestamp/1000.0
     })
 
@@ -533,7 +539,7 @@ const defaultExtent: (f: FunctionInfo) => Extent = (f) => {
   return [A.full(-1, n), A.full(+1, n)]
 }
 
-const defaultOptions: (result: ProcessedSource) => Options = ({info}) => {
+const defaultOptions: (result: ProcessedSource) => Partial<Options> = ({info}) => {
   return {
     functions: info.functions.map((f) => ({
       name: f.name,
@@ -544,9 +550,10 @@ const defaultOptions: (result: ProcessedSource) => Options = ({info}) => {
   }
 }
 
-const mergeOptions: (value: Options, oldValue: Options) => Options = (value, oldValue) => {
+const mergeOptions: (value: Partial<Options>, oldValue: Options) => Options = (value, oldValue) => {
   return {
-    functions: value.functions.map((f, i) => {
+    args: value.args ?? oldValue.args,
+    functions: value.functions?.map((f, i) => {
       const g = oldValue.functions[i]
       return {
         color: g?.color ?? f.color,
@@ -556,7 +563,7 @@ const mergeOptions: (value: Options, oldValue: Options) => Options = (value, old
         ],
         visible: g?.visible ?? f.visible,
       }
-    })
+    }) ?? oldValue.functions
   }
 }
 
@@ -612,24 +619,41 @@ const getFunctionInfo: (i: number) => FunctionInfo | undefined = (i) => {
       </TabPanel>
       <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2 overflow-hidden" :static="true">
         <Suspense>
-          <div class="flex flex-row items-center justify-center overflow-hidden">
+          <div class="flex flex-row items-center justify-center overflow-hidden show-focus-within">
             <WebGpuCanvas :renderer :listeners :options/>
           </div>
         </Suspense>
         <div class="flex flex-col p-2">
-          <div v-for="f, i of state.options.functions" :key="i">
-            <h2 class="flex flex-row items-center text-heading text-lg gap-2 my-2">
-              <input class="w-8 h-8" name="fill" type="color" v-model="f.color"/>
-              <span class="flex-grow">
-                {{getFunctionInfo(i)?.name}}: 
-                <span class="text-text text-base">
-                  {{getFunctionInfo(i)?.domain?.name}} &rarr; {{getFunctionInfo(i)?.codomain?.name}} 
-                </span>
-              </span>
-              <ToggleVisibleButton v-model="f.visible"/>
-            </h2>
+          <details>
+            <summary class="flex flex-row items-center gap-2 my-1">
+              <h2>Global</h2>
+            </summary>
+            <div v-for="i of A.range(0,4)" class="flex flex-row items-center gap-2" :key="i">
+              <label class="w-16 text-xs text-right font-mono">args[{{ i }}]:</label>
+              <input class="w-16" type="number" step="0.1" v-model="state.options.args[i]"/>
+              <input class="flex-grow" type="range" min="-1" max="1" step="0.01" v-model="state.options.args[i]" />
+              <!--
+              <div class="flex-grow flex flex-row gap-2">
+                <label>-1</label>
+                <input class="flex-grow" type="range" min="-1" max="1" step="0.01" v-model="state.options.args[i]" />
+                <label>+1</label>
+              </div>
+              -->
+            </div>
+          </details>
+          <details v-for="f, i of state.options.functions" :key="i">
+            <summary class="flex flex-row items-center gap-2 my-1">
+                <input class="w-8 h-8" name="fill" type="color" v-model="f.color"/>
+                <h2 class="flex-grow">
+                  {{getFunctionInfo(i)?.name}}: 
+                  <span class="text-text text-base">
+                    {{getFunctionInfo(i)?.domain?.name}} &rarr; {{getFunctionInfo(i)?.codomain?.name}} 
+                  </span>
+                </h2>
+                <ToggleVisibleButton v-model="f.visible"/>
+            </summary>
             <ExtentInput v-model="f.extent"/>
-          </div>
+          </details>
         </div>
       </TabPanel>
     </TabPanels>
@@ -637,4 +661,7 @@ const getFunctionInfo: (i: number) => FunctionInfo | undefined = (i) => {
 </template>
 
 <style scoped>
+.show-focus-within {
+  @apply focus-within:outline-none focus-within:ring focus-within:ring-inset focus-within:ring-border-hover;
+}
 </style>

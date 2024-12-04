@@ -27,7 +27,7 @@ successRef.value = await useWebGpu(canvasRef, props.renderer, props.listeners, p
 </script>
 
 <template>
-  <canvas v-if="successRef" ref="canvasRef" class="cursor-default focus:outline-none focus:ring focus:ring-inset focus:ring-border-hover" :width="width" :height="height" tabindex="1"></canvas>
+  <canvas v-if="successRef" ref="canvasRef" class="cursor-default" :width="width" :height="height" tabindex="1"></canvas>
   <div v-else class="flex items-center justify-center">WebGPU not supported.</div>
 </template>
 

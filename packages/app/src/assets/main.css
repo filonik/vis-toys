@@ -37,8 +37,16 @@ h1 {
   @apply text-lg;
 }
 
+h2 {
+  @apply text-heading text-lg;
+}
+
 input {
-  @apply text-text bg-background-mute border border-border;
+  @apply bg-background-mute text-text;
+}
+
+input[type="number"] { 
+  @apply border border-border;
 }
 
 label {
@@ -51,4 +59,41 @@ label {
 
 .tab {
   @apply px-2 text-sm border-b-2 border-background focus:outline-none focus:ring-0 ui-selected:border-blue-500;
+}
+
+summary {
+  list-style: none;
+}
+
+summary::before {
+  content: '';
+  width: 0; 
+  height: 0; 
+  border-top: 10px solid #fff;
+  border-inline: 7px solid transparent;
+  transition: 0.2s;
+}
+
+details[open] > summary::before {
+  transform: rotate(-90deg);
+}
+
+input[type="range"] {
+  @apply appearance-none cursor-pointer bg-transparent;
+}
+
+input[type="range"]::-moz-range-track {
+  @apply bg-border h-1;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  @apply bg-border h-1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  @apply w-4 h-4 -mt-1.5 bg-text rounded-full appearance-none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  @apply w-4 h-4 -mt-1.5 bg-text rounded-full appearance-none;
 }

@@ -41,7 +41,7 @@ const items: Array<{
 <template>
   <div v-for="i of indices" class="flex flex-row items-center gap-2" :key="i">
     <Menu as="div" class="relative inline-block text-left">
-      <MenuButton class="w-8 text-xs text-right font-mono">x[{{ i }}]:</MenuButton>
+      <MenuButton class="w-16 text-xs text-right font-mono">x[{{ i }}]:</MenuButton>
       <MenuItems
       class="absolute left-0 mt-2 w-32 origin-top-left divide-y divide-border bg-background-mute shadow-lg ring-1 ring-border-hover focus:outline-none z-50">
         <MenuItem v-for="item of items" as="div" class="menu-item text-center" @click="setExtent(item.value, i)">{{ item.name }}</MenuItem>

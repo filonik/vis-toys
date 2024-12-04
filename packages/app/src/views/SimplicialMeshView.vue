@@ -387,7 +387,7 @@ watch(stateRef, save, { immediate: true })
       </TabPanel>
       <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2" :static="true">
         <Suspense>
-          <WebGpuCanvas class="h-full w-full object-cover" :renderer :listeners :options/>
+          <WebGpuCanvas class="h-full w-full object-cover show-focus" :renderer :listeners :options/>
         </Suspense>
         <div>
           <h2>Material</h2>
@@ -410,4 +410,7 @@ watch(stateRef, save, { immediate: true })
 </template>
 
 <style scoped>
+.show-focus {
+  @apply focus:outline-none focus:ring focus:ring-inset focus:ring-border-hover;
+}
 </style>
