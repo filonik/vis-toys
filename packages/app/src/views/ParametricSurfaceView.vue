@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue"
+import { ref, watch } from "vue"
 import { useEventListener, toReactive } from '@vueuse/core';
 
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
-import type { HTMLElementEventListenerMap, WebGpuResource, WebGpuState, UseWebGpuOptions } from "@/composables/useWebGpu"
+import type { WebGpuResource, WebGpuState, UseWebGpuOptions } from "@/composables/useWebGpu"
 
 import CodeEditor from '@/components/CodemirrorEditor.vue'
 import ShareLinkButton from '@/components/ShareLinkButton.vue'
@@ -12,6 +12,8 @@ import ToggleDarkButton from '@/components/ToggleDarkButton.vue'
 import ToggleVisibleButton from '@/components/ToggleVisibleButton.vue'
 import ExtentInput from '@/components/ExtentInput.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
+
+import useCamera from '@/composables/useCamera'
 
 import { PRIMITIVES } from "@/lib/loaders/meshes"
 import { importMath } from "@/lib/shaders"
@@ -21,44 +23,18 @@ import * as wgh from 'webgpu-utils'
 
 import * as A from "@/lib/arrays"
 
+import { normalGridArrays } from "@/lib/graphics/meshes"
 import { mat4f } from "@/lib/tensors"
 
 import type { SourceInfo, FunctionInfo } from "@/lib/shaders/utilities"
 import { reflect, elementCount, functionShape } from "@/lib/shaders/utilities"
 
+import * as examples from "@/examples"
+
 //https://filonik.github.io/vis-toys/#/parametric-surface/?state=e3NvdXJjZTonQHBsb3RcbmZuIGYoeDogdmVjMmYpIC0-IHZlYzNmIHtcbiAgbGV0IGggPSAwLjU7XG4gIGxldCB0ID0gdUdsb2JhbC50aW1lO1xuICByZXR1cm4gdmVjM2YoeCwgaCpzaW4oeFswXSt0KSpjb3MoeFsxXSt0KSk7XG59JyxvcHRpb25zOntmdW5jdGlvbnM6W3tjb2xvcjonI2ZmZmZmZicsZXh0ZW50OltbLTMuMTQxNTkyNjUzNTg5NzkzLC0zLjE0MTU5MjY1MzU4OTc5M10sWzMuMTQxNTkyNjUzNTg5NzkzLDMuMTQxNTkyNjUzNTg5NzkzXV19XX19
 //http://localhost:5173/#/parametric-surface/?state=e3NvdXJjZTonQHBsb3RcbmZuIGYoeDogdmVjMmYpIC0-IHZlYzNmIHtcbiAgcmV0dXJuIHZlYzNmKFxuICAgIHNpbih4WzBdKSxcbiAgICBjb3MoeFswXSkqc2luKHhbMV0pLFxuICAgIGNvcyh4WzBdKSpjb3MoeFsxXSksXG4gICk7XG59XG4nLG1hdGVyaWFsOntmaWxsOicjZmZmZmZmJyxzdHJva2U6JyM4ODg4ODgnLHN0cm9rZVdpZHRoOjEwfX0
 
-const DEFAULT_SOURCE = `@plot
-fn f(x: vec2f) -> vec3f {
-  return vec3f(x, sin(x[0])*cos(x[1]));
-}`
-
-/*
-const DEFAULT_SOURCE = `@plot
-fn f(x: f32) -> vec2f {
-  return vec2f(x, sin(x));
-}
-
-@plot
-fn g(x: f32) -> vec2f {
-  return vec2f(x, cos(x));
-}`
-*/
-/*
-const DEFAULT_SOURCE = `@plot
-fn f(x: vec2f) -> vec3f {
-  return vec3f(x, sink(x[0], x[1]));
-}`
-const DEFAULT_SOURCE = `@plot
-fn f(x: vec1f) -> vec2f {
-  const k = -0.25;
-  return vec2f(
-    sink(k, x[0]),
-    cosk(k, x[0]),
-  );
-}`
-*/
+const DEFAULT_SOURCE = examples.wave3
 
 type Extent = [Array<number>, Array<number>]
 
@@ -270,96 +246,6 @@ const statefulResource = <T>(resource: {
   return result
 }
 
-const normalGrid: (lengths: Array<number>) => Array<Array<number>> = (lengths) => {
-  return A.cartesianProduct(lengths.map((length) => A.linspaceInclusive(-1.0, +1.0, length)))
-}
-
-const normalGridIndices: (lengths: Array<number>) => Array<Array<number>> = (lengths) => {
-  const n = lengths.length
-  const strides = A.cumProduct(lengths)
-
-  switch (n) {
-    case 1: {
-      const segments = A.range(0,lengths[0]-1).map(
-        (i) => [(i+0)*strides[0], (i+1)*strides[0]]
-      )
-      return segments
-    }
-    case 2: {
-      const segments0 = A.range(0, lengths[0]).flatMap(
-        (i) => A.range(0,lengths[1]-1).map(
-          (j) => [i*strides[0]+(j+0)*strides[1], i*strides[0]+(j+1)*strides[1]]
-        )
-      )
-      const segments1 = A.range(0, lengths[1]).flatMap(
-        (j) => A.range(0,lengths[0]-1).map(
-          (i) => [(i+0)*strides[0]+j*strides[1], (i+1)*strides[0]+j*strides[1]]
-        )
-      )
-      return A.concat(segments0, segments1)
-    }
-    case 3: {
-      const segments0 = A.range(0, lengths[0]).flatMap(
-        (i) => A.range(0, lengths[1]).flatMap(
-          (j) => A.range(0,lengths[2]-1).map(
-            (k) => [
-              i*strides[0]+j*strides[1]+(k+0)*strides[2],
-              i*strides[0]+j*strides[1]+(k+1)*strides[2],
-            ]
-          )
-        )
-      )
-      const segments1 = A.range(0, lengths[0]).flatMap(
-        (i) => A.range(0, lengths[2]).flatMap(
-          (k) => A.range(0,lengths[1]-1).map(
-            (j) => [
-              i*strides[0]+(j+0)*strides[1]+k*strides[2],
-              i*strides[0]+(j+1)*strides[1]+k*strides[2],
-            ]
-          )
-        )
-      )
-      const segments2 = A.range(0, lengths[1]).flatMap(
-        (j) => A.range(0, lengths[2]).flatMap(
-          (k) => A.range(0,lengths[0]-1).map(
-            (i) => [
-              (i+0)*strides[0]+j*strides[1]+k*strides[2],
-              (i+1)*strides[0]+j*strides[1]+k*strides[2],
-            ]
-          )
-        )
-      )
-      return A.concat(segments0, segments1, segments2)
-    }
-  }
-
-  return []
-}
-
-const normalGridArrays: (lengths: Array<number>) => wgh.Arrays = (lengths) => {
-  const positions = normalGrid(lengths).map((xs) => [1, xs[0]??0, xs[1]??0, xs[2]??0])
-  const colors = A.full([1,1,1,1], positions.length)
-
-  const indices = normalGridIndices(lengths)
-
-  return {
-    position: {
-      data: positions.flat(1),
-      type: Float32Array,
-      numComponents: 4,
-    },
-    color: {
-      data: colors.flat(1),
-      type: Float32Array,
-      numComponents: 4,
-    },
-    indices: {
-      data: indices.flat(1),
-      type: Uint32Array,
-    }
-  }
-}
-
 const gridSizes = (n: number) => [
   [],
   [Math.pow(n, 3*2)],
@@ -531,6 +417,7 @@ const pipeline = statefulResource<PipelineState>({
 })
 */
 
+const { listeners, transformInplace } = useCamera([-4, 0, -Math.PI/4])
 
 const renderer: WebGpuResource = {
   onCreate(args) {
@@ -588,6 +475,8 @@ const renderer: WebGpuResource = {
       time: timestamp/1000.0
     })
 
+    transformInplace(uGlobal.views.view)
+
     device.queue.writeBuffer(globalUniforms, 0, uGlobal.arrayBuffer);
 
     info.functions.forEach((f, i) => {
@@ -632,42 +521,7 @@ const renderer: WebGpuResource = {
   }
 }
 
-const pointerState = {
-  down: false
-}
-
-const listeners: HTMLElementEventListenerMap = {
-  pointerdown: (event: PointerEvent) => {
-    pointerState.down = true
-    const canvas = event.target as HTMLCanvasElement
-    canvas.setPointerCapture(event.pointerId)
-  },
-  pointermove: (event: PointerEvent) => {
-    if (!pointerState.down) return;
-    const canvas = event.target as HTMLCanvasElement
-    const display = [canvas.width, canvas.height]
-    const aspect = Math.min(...display)
-    const delta = [
-      +event.movementX * 4.0/aspect,
-      +event.movementY * 4.0/aspect,
-      0
-    ]
-    mat4f.rotateZ(uGlobal.views.view, delta[0], uGlobal.views.view)
-    mat4f.rotateY(uGlobal.views.view, delta[1], uGlobal.views.view)
-  },
-  pointerup: (event: PointerEvent) => {
-    pointerState.down = false
-  },
-  wheel: (event: WheelEvent) => {
-    //const scale = 1.0 + event.deltaY/100.0
-    //mat4f.scale(uCamera.views.transform, [scale, scale, 1], uCamera.views.transform)
-    const scale = event.deltaY/100.0
-    mat4f.translate(uGlobal.views.view, [0, 0, scale], uGlobal.views.view)
-    //mat4f.rotateX(uCamera.views.transform, scale, uCamera.views.transform)
-  }
-}
-
-const process: (source: string) => ProcessedSource = (source) => {
+const preprocess: (source: string) => ProcessedSource = (source) => {
   return {
     source: source.replaceAll("@plot", "/*@plot*/"),
     info: reflect(source)
@@ -707,7 +561,7 @@ const mergeOptions: (value: Options, oldValue: Options) => Options = (value, old
 }
 
 const save = (state: State) => {
-  const result = process(state.source)
+  const result = preprocess(state.source)
   processedSource.value = result
   state.options = mergeOptions(defaultOptions(result), state.options)
   surfaces.valid = false
