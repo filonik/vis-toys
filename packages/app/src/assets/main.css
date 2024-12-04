@@ -65,6 +65,10 @@ summary {
   list-style: none;
 }
 
+summary::-webkit-details-marker {
+  display: none;
+}
+
 summary::before {
   content: '';
   width: 0; 
