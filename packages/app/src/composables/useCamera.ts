@@ -21,7 +21,7 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
     origin: origin ?? [0, 0, 0],
   })
   
-  let startHypo: number | undefined = undefined;
+  let lastHypo: number | undefined = undefined;
 
   const listeners: HTMLElementEventListenerMap = {
     wheel: (event: WheelEvent) => {
@@ -71,17 +71,18 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
           (t0.pageY - t1.pageY)
         )
 
-        if (startHypo === undefined) {
-          startHypo = hypo;
+        if (lastHypo !== undefined) {        
+          const scale = hypo/lastHypo
+          state.position[0] = clampDistance(state.position[0] * scale)
         }
-        
-        const delta = hypo/startHypo
-        state.position[0] = clampDistance(state.position[0] * delta)
+
+        lastHypo = hypo
       }
     },
     touchend: (event: TouchEvent) => {
       event.preventDefault()
-      startHypo = undefined
+      
+      lastHypo = undefined
     },
   }
 
