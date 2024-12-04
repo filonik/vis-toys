@@ -71,15 +71,16 @@ summary::-webkit-details-marker {
 
 summary::before {
   content: '';
-  width: 0; 
-  height: 0; 
-  border-top: 10px solid #fff;
+  width: 0;
+  height: 0;
+  border-top: 10px solid var(--color-border-hover);
   border-inline: 7px solid transparent;
+  transform: rotate(-90deg);
   transition: 0.2s;
 }
 
 details[open] > summary::before {
-  transform: rotate(-90deg);
+  transform: rotate(0deg);
 }
 
 input[type="range"] {
