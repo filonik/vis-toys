@@ -76,7 +76,7 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
         }
         
         const delta = hypo/startHypo
-        state.position[0] = clampDistance(state.position[0] + delta)
+        state.position[0] = clampDistance(state.position[0] * delta)
       }
     },
     touchend: (event: TouchEvent) => {
