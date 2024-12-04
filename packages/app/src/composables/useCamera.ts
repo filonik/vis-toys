@@ -21,7 +21,14 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
     origin: origin ?? [0, 0, 0],
   })
   
+  let startHypo: number | undefined = undefined;
+
   const listeners: HTMLElementEventListenerMap = {
+    wheel: (event: WheelEvent) => {
+      event.preventDefault()
+      const delta = event.deltaY/100.0
+      state.position[0] = clampDistance(state.position[0] + delta)
+    },
     pointerdown: (event: PointerEvent) => {
       state.isDown = true
       const canvas = event.target as HTMLCanvasElement
@@ -49,10 +56,33 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
     pointerup: (event: PointerEvent) => {
       state.isDown = false
     },
-    wheel: (event: WheelEvent) => {
-      const delta = event.deltaY/100.0
-      state.position[0] = clampDistance(state.position[0] + delta)
-    }
+    touchstart: (event: TouchEvent) => {
+      event.preventDefault()
+    },
+    touchmove: (event: TouchEvent) => {
+      event.preventDefault()
+
+      if (event.targetTouches.length === 2) {
+        const t0 = event.targetTouches[0]
+        const t1 = event.targetTouches[1]
+
+        let hypo = Math.hypot(
+          (t0.pageX - t1.pageX),
+          (t0.pageY - t1.pageY)
+        )
+
+        if (startHypo === undefined) {
+          startHypo = hypo;
+        }
+        
+        const delta = hypo/startHypo
+        state.position[0] = clampDistance(state.position[0] + delta)
+      }
+    },
+    touchend: (event: TouchEvent) => {
+      event.preventDefault()
+      startHypo = undefined
+    },
   }
 
   const transformInplace = (dst: BaseArgType) => {
