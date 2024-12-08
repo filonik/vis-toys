@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { Ref } from 'vue'
 import { computed } from "vue"
 import { useVModel } from "@vueuse/core"
 
@@ -7,7 +6,7 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 
 import * as A from "@/lib/arrays"
 
-type Extent = [Array<number>, Array<number>]
+import { type Extent } from "@/lib/tensors"
 
 export interface Props {
   modelValue: Extent
@@ -19,7 +18,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const value = useVModel(props, 'modelValue', emit)
 
-const setExtent: (newValue: [number, number], i: number) => void = (newValue, i) => {
+const setExtent: (i: number, newValue: [number, number]) => void = (i, newValue) => {
   value.value = [
     value.value[0].map((v, j) => i==j? newValue[0]: v),
     value.value[1].map((v, j) => i==j? newValue[1]: v),
@@ -44,7 +43,7 @@ const items: Array<{
       <MenuButton class="w-16 text-xs text-right font-mono">x[{{ i }}]:</MenuButton>
       <MenuItems
       class="absolute left-0 mt-2 w-32 origin-top-left divide-y divide-border bg-background-mute shadow-lg ring-1 ring-border-hover focus:outline-none z-50">
-        <MenuItem v-for="item of items" as="div" class="menu-item text-center" @click="setExtent(item.value, i)">{{ item.name }}</MenuItem>
+        <MenuItem v-for="item of items" as="div" class="menu-item text-center" @click="setExtent(i, item.value)">{{ item.name }}</MenuItem>
       </MenuItems>
     </Menu>
     <input class="w-16" type="number" step="0.1" v-model="value[0][i]"/>

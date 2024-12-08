@@ -2,6 +2,12 @@ import * as wgh from 'webgpu-utils'
 
 import * as A from "@/lib/arrays"
 
+export const PRIMITIVES: Record<number, GPUPrimitiveTopology> = {
+  0: 'point-list',
+  1: 'line-list',
+  2: 'triangle-list',
+}
+
 const normalGridPositions: (lengths: Array<number>) => Array<Array<number>> = (lengths) => {
   return A.cartesianProduct(lengths.map((length) => A.linspaceInclusive(-1.0, +1.0, length)))
 }

@@ -320,3 +320,12 @@ export const scaleToFitCover = (display: [number, number]) => {
   const aspect = Math.max(...display)
   return mat4f.scaling([aspect/display[0], aspect/display[1], 1])
 }
+
+//export type Extent = [Array<number>, Array<number>]
+export type Extent = Array<Array<number>>
+
+export const remapExtent: (extent: Extent) => any = (extent) => {
+  const t = A.divs(A.add(extent[0], extent[1]), 2.0)
+  const s = A.divs(A.sub(extent[0], extent[1]), 2.0)
+  return mat4f.st(s, t)
+}

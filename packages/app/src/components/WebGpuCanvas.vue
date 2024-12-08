@@ -16,12 +16,12 @@ const props = withDefaults(defineProps<Props>(), {
   listeners: () => ({}),
 })
 
+const width = computed(() => props.options.size?.[0] ?? 1920)
+const height = computed(() => props.options.size?.[1] ?? 1080)
+
 const canvasRef = ref<HTMLCanvasElement>()
 
 const successRef = ref<boolean>(true);
-
-const width = computed(() => props.options.size?.[0] ?? 1920)
-const height = computed(() => props.options.size?.[1] ?? 1080)
 
 successRef.value = await useWebGpu(canvasRef, props.renderer, props.listeners, props.options)
 </script>

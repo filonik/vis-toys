@@ -45,7 +45,7 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
         0
       ]
       if (event.altKey || event.metaKey) {
-        const factor = -state.position[0]/(1920/400) // ???
+        const factor = -state.position[0]/(1920/400) // From projection matrix?
         state.origin[0] += delta[0]*factor
         state.origin[1] -= delta[1]*factor
       } else {
@@ -81,7 +81,7 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
     },
     touchend: (event: TouchEvent) => {
       event.preventDefault()
-      
+
       lastHypo = undefined
     },
   }
