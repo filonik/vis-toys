@@ -15,29 +15,20 @@ import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
 import useCamera from '@/composables/useCamera'
 
-import { PRIMITIVES } from "@/lib/loaders/meshes"
-import { importMath } from "@/lib/shaders"
-
 import chroma from 'chroma-js'
 import * as wgh from 'webgpu-utils'
 
 import * as A from "@/lib/arrays"
 
-import { normalGridArrays } from "@/lib/graphics/meshes"
-import { mat4f } from "@/lib/tensors"
+import { PRIMITIVES, normalGridArrays } from "@/lib/graphics/meshes"
+import { mat4f, remapExtent, type Extent } from "@/lib/tensors"
 
-import type { SourceInfo, FunctionInfo } from "@/lib/shaders/utilities"
-import { reflect, elementCount, functionShape } from "@/lib/shaders/utilities"
+import { importMath } from "@/lib/graphics/shaders"
+
+import type { SourceInfo, FunctionInfo } from "@/lib/graphics/shaders/utilities"
+import { reflect, elementCount, functionShape } from "@/lib/graphics/shaders/utilities"
 
 import * as examples from "@/examples"
-
-//https://filonik.github.io/vis-toys/#/parametric-surface/?state=e3NvdXJjZTonQHBsb3RcbmZuIGYoeDogdmVjMmYpIC0-IHZlYzNmIHtcbiAgbGV0IGggPSAwLjU7XG4gIGxldCB0ID0gdUdsb2JhbC50aW1lO1xuICByZXR1cm4gdmVjM2YoeCwgaCpzaW4oeFswXSt0KSpjb3MoeFsxXSt0KSk7XG59JyxvcHRpb25zOntmdW5jdGlvbnM6W3tjb2xvcjonI2ZmZmZmZicsZXh0ZW50OltbLTMuMTQxNTkyNjUzNTg5NzkzLC0zLjE0MTU5MjY1MzU4OTc5M10sWzMuMTQxNTkyNjUzNTg5NzkzLDMuMTQxNTkyNjUzNTg5NzkzXV19XX19
-//http://localhost:5173/#/parametric-surface/?state=e3NvdXJjZTonQHBsb3RcbmZuIGYoeDogdmVjMmYpIC0-IHZlYzNmIHtcbiAgcmV0dXJuIHZlYzNmKFxuICAgIHNpbih4WzBdKSxcbiAgICBjb3MoeFswXSkqc2luKHhbMV0pLFxuICAgIGNvcyh4WzBdKSpjb3MoeFsxXSksXG4gICk7XG59XG4nLG1hdGVyaWFsOntmaWxsOicjZmZmZmZmJyxzdHJva2U6JyM4ODg4ODgnLHN0cm9rZVdpZHRoOjEwfX0
-
-const DEFAULT_SOURCE = examples.wave3
-//const DEFAULT_SOURCE = examples.generalSphere2
-
-type Extent = [Array<number>, Array<number>]
 
 type Options = {
   args: Array<number>
@@ -53,13 +44,7 @@ type State = {
   options: Options
 }
 
-const stateRef = ref<State>({
-  source: DEFAULT_SOURCE,
-  options: {
-    args: [0,0,0,0],
-    functions: []
-  },
-})
+const stateRef = ref<State>(examples.wave2)
 
 const state = toReactive(stateRef)
 
@@ -180,7 +165,7 @@ const uGlobal: wgh.StructuredView = wgh.makeStructuredView(defs.uniforms.uGlobal
 uGlobal.set({
   //transform: scaleToFitContain([1920,1080])
   projection: mat4f.perspective(Math.PI/4, 1920/1080, 0.1, 1000.0),
-  view: mat4f.translation([0,0,-3]), ///mat4f.mul(mat4f.translation([0,0,1]), mat4f.rotationY(Math.PI/2)), //mat4f.mul(mat4f.rotationZ(Math.PI/2), mat4f.translation([0,0,-1])),
+  view: mat4f.translation([0,0,0]), ///mat4f.mul(mat4f.translation([0,0,1]), mat4f.rotationY(Math.PI/2)), //mat4f.mul(mat4f.rotationZ(Math.PI/2), mat4f.translation([0,0,-1])),
   args: [0,0,0,0],
 })
 
@@ -274,12 +259,6 @@ const meshes = statefulResource<MeshesGpuState>({
     // TODO: Destroy buffers.
   },
 })
-
-const remapExtent: (extent: Extent) => any = (extent) => {
-  const t = A.divs(A.add(extent[0], extent[1]), 2.0)
-  const s = A.divs(A.sub(extent[0], extent[1]), 2.0)
-  return mat4f.st(s, t)
-}
 
 const global = statefulResource<GlobalGpuState>({
   create({device, format}) { 
@@ -421,8 +400,7 @@ const pipeline = statefulResource<PipelineState>({
 })
 */
 
-const { listeners, transformInplace } = useCamera([-4, 0, 0])
-//const { listeners, transformInplace } = useCamera([-4, 0, -Math.PI/4])
+const { listeners, transformInplace } = useCamera([-8, 0, 0])
 
 const renderer: WebGpuResource = {
   onCreate(args) {
