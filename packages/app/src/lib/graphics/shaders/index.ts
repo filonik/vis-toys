@@ -1,6 +1,7 @@
 import mat from '@/assets/shaders/mat.wgsl?raw'
 import complex from  '@/assets/shaders/complex.wgsl?raw'
 import generalComplex from '@/assets/shaders/generalComplex.wgsl?raw'
+import clifford from '@/assets/shaders/clifford.wgsl?raw'
 
 const commonTypes = `
 alias vec1f = array<f32, 1>;
@@ -126,6 +127,7 @@ ${commonTypes}
 ${complex}
 ${generalTrigonometry}
 ${generalComplex}
+${clifford}
 ${mat}
 `
 

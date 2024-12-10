@@ -405,6 +405,96 @@ export const triplexLine = {
   },
 }
 
+const dcl3Source = `fn dcl3_ncoord(k: f32, x: vec2f) -> dcl3vec {
+  let e0 = dcl3rot(1,0,0,0);
+  let r01 = dcl3rot_exp(k, dcl3rot(0, 0, 0.5*x[0], 0));
+  let r12 = dcl3rot_exp(k, dcl3rot(0.5*x[1], 0, 0, 0));
+  let r = dcl3rot_mul(k, r01, r12);
+  return dcl3rot_sw(k, e0, r).xyz;
+}
+
+@plot
+fn f(x: vec2f) -> vec3f {
+  let k = uGlobal.args[0];
+  return dcl3_ncoord(k, x);
+}
+`
+
+export const dcl3 = {
+  source: dcl3Source,
+  options: {
+    args: [0,0,0,0],
+    functions: [{
+      color: '#555555',
+      extent: [
+        [0, -Math.PI],
+        [Math.PI, +Math.PI],
+      ],
+      visible: true,
+    }]
+  },
+}
+
+const dcl3LineSource = `fn dcl3_ncoord(k: f32, x: vec2f) -> dcl3rot {
+  let e0 = dcl3rot(1,0,0,0);
+  let r01 = dcl3rot_exp(k, dcl3rot(0, 0, 0.5*x[0], 0));
+  let r12 = dcl3rot_exp(k, dcl3rot(0.5*x[1], 0, 0, 0));
+  let r = dcl3rot_mul(k, r01, r12);
+  return dcl3rot_sw(k, e0, r);
+}
+
+@plot
+fn f(x: vec2f) -> vec3f {
+  let k = uGlobal.args[0];
+  return dcl3_ncoord(k, x).xyz;
+}
+
+@plot
+fn l(t: vec1f) -> vec3f {
+  let k = uGlobal.args[0];
+  let a = dcl3_ncoord(k, vec2f(uGlobal.args.yz));
+  let b = dcl3_ncoord(k, vec2f(uGlobal.args.w,0));
+  return dcl3rot_mix(k, a, b, t).xyz;
+}
+
+@plot
+fn l_mix(t: vec1f) -> vec3f {
+  let k = uGlobal.args[0];
+  let a = dcl3_ncoord(k, vec2f(uGlobal.args.yz));
+  let b = dcl3_ncoord(k, vec2f(uGlobal.args.w,0));
+  return mix(a,b,t[0]).xyz;
+}
+`
+
+export const dcl3Line = {
+  source: dcl3LineSource,
+  options: {
+    args: [1,1,1,0],
+    functions: [{
+      color: '#555555',
+      extent: [
+        [0, -Math.PI],
+        [Math.PI, +Math.PI],
+      ],
+      visible: true,
+    },{
+      color: '#ffffff',
+      extent: [
+        [0],
+        [1],
+      ],
+      visible: true,
+    },{
+      color: '#0000ff',
+      extent: [
+        [0],
+        [1],
+      ],
+      visible: true,
+    }]
+  },
+}
+
 /*
 const DEFAULT_SOURCE = `@plot
 fn f(x: f32) -> vec2f {
