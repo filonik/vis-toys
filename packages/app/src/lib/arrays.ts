@@ -69,6 +69,10 @@ export const CartesianMul: <T>() => M.LeftMonoid<Array<T>, Array<Array<T>>> = ()
 
 export const cartesianProduct: <T>(values: Array<Array<T>>) => Array<Array<T>> = reduce(CartesianMul())
 
+export const indices: (shape: Array<number>) => Array<Array<number>> = (shape) => cartesianProduct(shape.map((n) => range(0, n)))
+
+export const strides: (shape: Array<number>) => Array<number> = (shape) => reverse(cumProduct(reverse(shape)))
+
 //export const sort:
 //export const filter:
 //export const reverse:
@@ -80,6 +84,8 @@ export const unArray = <T>(value: T | Array<T>) => Array.isArray(value)? value[0
 export const concat: <T>(...values: Array<Array<T>>) => Array<T> = (...values) => empty().concat(...values) as any
 
 
+import { type MapN }from "@/lib/functors/arrays"
+export const cartesianWith: MapN = (f) => (...arrays: Array<Array<any>>) => cartesianProduct(arrays).map((args: Array<any>) => (f as any)(...args))
 
 // Different kinds of arrays (see Awkward Arrays)
 

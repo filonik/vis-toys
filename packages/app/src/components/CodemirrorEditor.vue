@@ -2,16 +2,14 @@
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { useDark, useResizeObserver, useVModel } from "@vueuse/core"
 
-import { basicSetup} from 'codemirror'
-import { EditorState, Compartment } from '@codemirror/state'
+import { EditorState, Compartment, type Extension, type EditorStateConfig } from '@codemirror/state'
 import { EditorView, ViewUpdate } from '@codemirror/view'
 import { oneDark } from '@codemirror/theme-one-dark'
-
-import { wgsl } from "@iizukak/codemirror-lang-wgsl"
 
 const oneLight: any = []
 
 export interface Props {
+  options?: EditorStateConfig,
   modelValue: string
 }
 
@@ -62,12 +60,12 @@ const onChange = (value: string, viewUpdate: ViewUpdate) => {
 
 onMounted(() => {
   themeConfig = new Compartment()
+  
+  const userConfig: EditorStateConfig = props.options ?? {}
 
-  state = EditorState.create({
+  const baseConfig: EditorStateConfig = {
     doc: modelValue.value,
     extensions: [
-      basicSetup, 
-      wgsl(),
       EditorView.updateListener.of((viewUpdate) => {
         // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
         //onUpdate(viewUpdate)
@@ -82,12 +80,23 @@ onMounted(() => {
       }),
       themeConfig.of(theme.value)
     ]
-  })
+  }
 
-  view = new EditorView({ 
+  const config: EditorStateConfig = {
+    ...userConfig,
+    ...baseConfig,
+    extensions: [
+      userConfig.extensions ?? [],
+      baseConfig.extensions ?? [],
+    ]
+  }
+
+  state = EditorState.create(config)
+
+  view = new EditorView({
+    parent: elementRef.value,
     state,
-    parent: elementRef.value
-  })   
+  })
 })
 
 onBeforeUnmount(() => {

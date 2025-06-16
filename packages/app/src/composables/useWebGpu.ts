@@ -21,6 +21,7 @@ export type UseWebGpuOptions = {
   format?: GPUTextureFormat
   size?: [number, number]
   autoResize?: boolean
+  features?: Array<GPUFeatureName>
 }
 
 export type CreateArguments = WebGpuState
@@ -130,7 +131,17 @@ export default async function useWebGpu(
     return false
   }
 
-  const device = await adapter.requestDevice()
+  const { features = [] } = options
+  const requiredFeatures: Array<GPUFeatureName> = []
+  for (let feature of features) {
+    if (adapter.features.has(feature)) {
+      requiredFeatures.push(feature)
+    } else {
+      console.warn(`Requested feature not supported: "${feature}".`)
+    }
+  }
+
+  const device = await adapter.requestDevice({ requiredFeatures })
 
   if (!device) {
     console.log('Invalid device.')
