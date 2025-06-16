@@ -2,6 +2,25 @@ import * as wgh from 'webgpu-utils'
 
 import * as A from "@/lib/arrays"
 
+// 0-Simplex Domain (Points)
+// Vertex (p0: vec4, t: vec0f)
+
+// 1-Simplex Domain (Lines)
+// Vertex (p0: vec4, p1: vec4, t: vec1f)
+
+// 2-Simplex Domain (Triangles)
+// Vertex (p0: vec4, p1: vec4, p2: vec4, t: vec2f)
+
+/*`
+struct VertexIn {
+  @location(0) p0: vec4f,
+  @location(1) p1: vec4f,
+  @location(2) c0: vec4f,
+  @location(3) c1: vec4f,
+  @location(4) t: f32,
+}
+`*/
+
 export const PRIMITIVES: Record<number, GPUPrimitiveTopology> = {
   0: 'point-list',
   1: 'line-list',
@@ -14,24 +33,28 @@ const normalGridPositions: (lengths: Array<number>) => Array<Array<number>> = (l
 
 const normalGridIndices: (lengths: Array<number>) => Array<Array<number>> = (lengths) => {
   const n = lengths.length
-  const strides = A.cumProduct(lengths)
+  const strides = A.reverse(A.cumProduct(A.reverse(lengths)))
+
+  const flatIndex1 = (i: number) =>  i*strides[0]
+  const flatIndex2 = (i: number, j: number) =>  i*strides[0] + j*strides[1]
+  const flatIndex3 = (i: number, j: number, k: number) =>  i*strides[0] + j*strides[1] + k*strides[2]
 
   switch (n) {
     case 1: {
       const segments = A.range(0,lengths[0]-1).map(
-        (i) => [(i+0)*strides[0], (i+1)*strides[0]]
+        (i) => [flatIndex1(i+0), flatIndex1(i+1)]
       )
       return segments
     }
     case 2: {
       const segments0 = A.range(0, lengths[0]).flatMap(
         (i) => A.range(0,lengths[1]-1).map(
-          (j) => [i*strides[0]+(j+0)*strides[1], i*strides[0]+(j+1)*strides[1]]
+          (j) => [flatIndex2(i, j+0), flatIndex2(i, j+1)]
         )
       )
       const segments1 = A.range(0, lengths[1]).flatMap(
         (j) => A.range(0,lengths[0]-1).map(
-          (i) => [(i+0)*strides[0]+j*strides[1], (i+1)*strides[0]+j*strides[1]]
+          (i) => [flatIndex2(i+0, j), flatIndex2(i+1, j)]
         )
       )
       return A.concat(segments0, segments1)
