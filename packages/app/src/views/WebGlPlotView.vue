@@ -12,7 +12,7 @@ import { StreamLanguage } from "@codemirror/language"
 import { shader } from "@codemirror/legacy-modes/mode/clike"
 
 import { importCommon, importDual } from '@/lib/graphics/shaders/glsl'
-import { process } from '@/lib/graphics/shaders/glsl/utilities'
+import { process } from '@/lib/graphics/glsl/shaders/utilities'
 
 const editorConfig = {
   extensions: [basicSetup, StreamLanguage.define(shader)]
