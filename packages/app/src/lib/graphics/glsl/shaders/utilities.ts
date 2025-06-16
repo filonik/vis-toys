@@ -4,7 +4,7 @@ import { preprocess } from '@shaderfrog/glsl-parser/preprocessor';
 
 import * as A from "@/lib/arrays"
 
-import { UNARY_OPERATORS, BINARY_OPERATORS } from "@/lib/graphics/shaders/glsl"
+import { UNARY_OPERATORS, BINARY_OPERATORS } from "@/lib/graphics/glsl/shaders"
 
 const literal = <T>(literal: T, whitespace: Whitespace): LiteralNode<T> => ({
   type: 'literal',

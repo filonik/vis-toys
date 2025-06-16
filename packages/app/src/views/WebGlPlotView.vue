@@ -11,7 +11,7 @@ import { basicSetup } from 'codemirror'
 import { StreamLanguage } from "@codemirror/language"
 import { shader } from "@codemirror/legacy-modes/mode/clike"
 
-import { importCommon, importDual } from '@/lib/graphics/shaders/glsl'
+//import { importCommon, importDual } from '@/lib/graphics/glsl/shaders'
 import { process } from '@/lib/graphics/glsl/shaders/utilities'
 
 const editorConfig = {
@@ -34,9 +34,7 @@ const stateRef = ref<State>({
 
 const state = toReactive(stateRef)
 
-const shaderSource = (source: string) => `${importCommon()}
-${importDual()}
-
+const shaderSource = (source: string) => `
 ${source}
 `
 
@@ -92,11 +90,10 @@ watch(stateRef, save, { immediate: true })
   <PageHeader title="Plot View" v-model="stateRef"></PageHeader>
   <PageMain>
     <template v-slot:input>
-      <CodeEditor v-model="state.source" :options="editorConfig"/>
+      <CodeEditor class="h-full" v-model="state.source" :options="editorConfig"/>
     </template>
     <template v-slot:output>
-      <pre class="text-xs overflow-scroll">{{ processedSource?.source }}</pre>
-      <div></div>
+      <pre class="h-full text-xs overflow-scroll">{{ processedSource?.source }}</pre>
     </template>
   </PageMain>
 </template>

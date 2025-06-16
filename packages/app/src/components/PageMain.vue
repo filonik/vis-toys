@@ -9,10 +9,10 @@ import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
       <Tab class="tab">Output</Tab>
     </TabList>
     <TabPanels class="h-full md:grid md:grid-cols-2 border-y-2 border-border">
-      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-1 overflow-hidden" :static="true">
+      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:block overflow-hidden" :static="true">
         <slot name="input"></slot>
       </TabPanel>
-      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2 overflow-hidden" :static="true">
+      <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:block overflow-hidden" :static="true">
         <slot name="output"></slot>
       </TabPanel>
     </TabPanels>

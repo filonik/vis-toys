@@ -20,13 +20,13 @@ import * as wgh from 'webgpu-utils'
 
 import * as A from "@/lib/arrays"
 
-import { PRIMITIVES, normalGridArrays } from "@/lib/graphics/meshes"
+import { PRIMITIVES, normalGridArrays } from "@/lib/graphics/wgsl/meshes"
 import { mat4f, remapExtent, type Extent } from "@/lib/tensors"
 
-import { importMath } from "@/lib/graphics/shaders"
+import { importMath } from "@/lib/graphics/wgsl/shaders"
 
-import type { SourceInfo, FunctionInfo } from "@/lib/graphics/shaders/utilities"
-import { reflect, elementCount, functionShape } from "@/lib/graphics/shaders/utilities"
+import type { SourceInfo, FunctionInfo } from "@/lib/graphics/wgsl/shaders/utilities"
+import { reflect, elementCount, functionShape } from "@/lib/graphics/wgsl/shaders/utilities"
 
 import * as examples from "@/examples"
 

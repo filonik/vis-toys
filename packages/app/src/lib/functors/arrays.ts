@@ -1,6 +1,6 @@
 import type {Arrays, Morphism, Multimorphism} from "@/lib/types"
 
-type Map = <S,T>(f: Morphism<S, T>) => Morphism<Array<S>, Array<T>> 
+type Map = <S, T>(f: Morphism<S, T>) => Morphism<Array<S>, Array<T>> 
 type MapN = <S extends unknown[], T>(f: Multimorphism<S,T>) => Multimorphism<Arrays<S>, Array<T>> 
 
 export const map: Map = (f) => (xs) => xs.map(f)
