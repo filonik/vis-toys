@@ -26,6 +26,11 @@ const router = createRouter({
       name: 'instanced-simplicial-mesh',
       component: () => import('../views/InstancedSimplicialMeshView.vue')
     },
+    {
+      path: '/glsl-transform/',
+      name: 'glsl-transform',
+      component: () => import('../views/WebGlPlotView.vue')
+    },
   ]
 })
 

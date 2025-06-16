@@ -14,11 +14,14 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@codemirror/language": "^6.1.2",
+    "@codemirror/legacy-modes": "^6.1.2",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@headlessui/tailwindcss": "^0.2.1",
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.1.5",
     "@iizukak/codemirror-lang-wgsl": "^0.3.0",
+    "@shaderfrog/glsl-parser": "^6.0.2",
     "@vueuse/core": "^11.1.0",
     "@vueuse/router": "^11.1.0",
     "chroma-js": "^2.4.2",
