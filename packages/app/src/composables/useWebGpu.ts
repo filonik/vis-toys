@@ -2,11 +2,9 @@ import { onMounted, onBeforeUnmount } from 'vue'
 import type { Ref } from 'vue'
 
 import { useEventListener, useRafFn, useResizeObserver } from '@vueuse/core'
-import type { UseRafFnCallbackArguments, GeneralEventListener } from '@vueuse/core'
+import type { UseRafFnCallbackArguments } from '@vueuse/core'
 
-export type HTMLElementEventListenerMap = Partial<{
-  [E in keyof HTMLElementEventMap]: GeneralEventListener<HTMLElementEventMap[E]>
-}>;
+import type {HTMLElementEventListenerMap} from '@/types'
 
 export type WebGpuState = {
   adapter: GPUAdapter

@@ -86,7 +86,7 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
     },
   }
 
-  const transformInplace = (dst: BaseArgType) => {
+  const transformInplace: <T extends BaseArgType>(dst: T) => T = (dst) => {
     mat4f.identity(dst)
     mat4f.translate(dst, [0, 0, state.position[0]], dst)
     mat4f.rotateY(dst, state.position[2], dst)
@@ -95,7 +95,7 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
     return dst
   }
 
-  const transform = computed(() => {
+  const transform = computed<Float32Array>(() => {
     return transformInplace(mat4f.create())
   })
 

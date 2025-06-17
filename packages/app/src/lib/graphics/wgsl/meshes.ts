@@ -63,30 +63,21 @@ const normalGridIndices: (lengths: Array<number>) => Array<Array<number>> = (len
       const segments0 = A.range(0, lengths[0]).flatMap(
         (i) => A.range(0, lengths[1]).flatMap(
           (j) => A.range(0,lengths[2]-1).map(
-            (k) => [
-              i*strides[0]+j*strides[1]+(k+0)*strides[2],
-              i*strides[0]+j*strides[1]+(k+1)*strides[2],
-            ]
+            (k) => [flatIndex3(i,j,k+0), flatIndex3(i,j,k+1)]
           )
         )
       )
       const segments1 = A.range(0, lengths[0]).flatMap(
         (i) => A.range(0, lengths[2]).flatMap(
           (k) => A.range(0,lengths[1]-1).map(
-            (j) => [
-              i*strides[0]+(j+0)*strides[1]+k*strides[2],
-              i*strides[0]+(j+1)*strides[1]+k*strides[2],
-            ]
+            (j) => [flatIndex3(i,j+0,k), flatIndex3(i,j+1,k)]
           )
         )
       )
       const segments2 = A.range(0, lengths[1]).flatMap(
         (j) => A.range(0, lengths[2]).flatMap(
           (k) => A.range(0,lengths[0]-1).map(
-            (i) => [
-              (i+0)*strides[0]+j*strides[1]+k*strides[2],
-              (i+1)*strides[0]+j*strides[1]+k*strides[2],
-            ]
+            (i) => [flatIndex3(i+0,j,k), flatIndex3(i+1,j,k)]
           )
         )
       )

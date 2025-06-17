@@ -15,6 +15,9 @@ import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
 import useCamera from '@/composables/useCamera'
 
+import { basicSetup } from 'codemirror'
+import { wgsl } from '@iizukak/codemirror-lang-wgsl'
+
 import chroma from 'chroma-js'
 import * as wgh from 'webgpu-utils'
 
@@ -29,6 +32,10 @@ import type { SourceInfo, FunctionInfo } from "@/lib/graphics/wgsl/shaders/utili
 import { reflect, elementCount, functionShape } from "@/lib/graphics/wgsl/shaders/utilities"
 
 import * as examples from "@/examples"
+
+const editorConfig = {
+  extensions: [basicSetup, wgsl()]
+}
 
 type Options = {
   args: Array<number>
@@ -593,7 +600,7 @@ const getFunctionInfo: (i: number) => FunctionInfo | undefined = (i) => {
     </TabList>
     <TabPanels class="h-full md:grid md:grid-cols-2 border-y-2 border-border">
       <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-1 overflow-hidden" :static="true">
-        <CodeEditor v-model="state.source"/>
+        <CodeEditor v-model="state.source" :options="editorConfig"/>
       </TabPanel>
       <TabPanel class="h-full ui-not-selected:hidden md:ui-not-selected:grid grid grid-rows-2 overflow-hidden" :static="true">
         <Suspense>

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
 
-import useWebGpu, { type HTMLElementEventListenerMap, type WebGpuResource, type UseWebGpuOptions } from '@/composables/useWebGpu'
+import useWebGpu, { type WebGpuResource, type UseWebGpuOptions } from '@/composables/useWebGpu'
+import type {HTMLElementEventListenerMap} from "@/types"
 
 export interface Props {
   renderer: WebGpuResource

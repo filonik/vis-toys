@@ -11,7 +11,7 @@ import { basicSetup } from 'codemirror'
 import { StreamLanguage } from "@codemirror/language"
 import { shader } from "@codemirror/legacy-modes/mode/clike"
 
-//import { importCommon, importDual } from '@/lib/graphics/glsl/shaders'
+import { importBuiltin, importCustomOperators } from '@/lib/graphics/glsl/shaders'
 import { process } from '@/lib/graphics/glsl/shaders/utilities'
 
 const editorConfig = {
@@ -34,7 +34,8 @@ const stateRef = ref<State>({
 
 const state = toReactive(stateRef)
 
-const shaderSource = (source: string) => `
+const shaderSource = (source: string) => `${importBuiltin()}
+
 ${source}
 `
 
@@ -93,7 +94,7 @@ watch(stateRef, save, { immediate: true })
       <CodeEditor class="h-full" v-model="state.source" :options="editorConfig"/>
     </template>
     <template v-slot:output>
-      <pre class="h-full text-xs overflow-scroll">{{ processedSource?.source }}</pre>
+      <pre class="h-full text-xs overflow-scroll p-2">{{ processedSource?.source }}</pre>
     </template>
   </PageMain>
 </template>

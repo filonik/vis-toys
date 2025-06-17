@@ -1,3 +1,5 @@
+// arrays of arrays supported in GLSL ES 3.10 and above
+
 #define vec1 float[1]
 #define mat1 float[1*1]
 

@@ -1,5 +1,5 @@
 
-const createShader = (gl: WebGL2RenderingContext, shaderSource: string, shaderType: GLenum) => {
+export const createShader = (gl: WebGL2RenderingContext, shaderSource: string, shaderType: GLenum) => {
   const shader = gl.createShader(shaderType)
 
   if (!shader) {
@@ -22,7 +22,7 @@ const createShader = (gl: WebGL2RenderingContext, shaderSource: string, shaderTy
   return shader
 }
 
-const createProgram = (gl: WebGL2RenderingContext, shaders: Array<WebGLShader | null>) => {
+export const createProgram = (gl: WebGL2RenderingContext, shaders: Array<WebGLShader | null>) => {
   const program = gl.createProgram();
 
   shaders.forEach((shader) => {
