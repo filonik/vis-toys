@@ -10,7 +10,9 @@ import { ArrowUpOnSquareIcon } from '@heroicons/vue/24/outline'
 import CodeEditor from '@/components/MonacoEditor.vue'
 import WebGpuCanvas from '@/components/WebGpuCanvas.vue'
 
-import type { HTMLElementEventListenerMap, WebGpuResource, WebGpuState, UseWebGpuOptions } from "@/composables/useWebGpu"
+import type { WebGpuResource, WebGpuState, UseWebGpuOptions } from "@/composables/useWebGpu"
+import type {HTMLElementEventListenerMap} from '@/types'
+
 import basicShaderCode from '@/assets/shaders/basic.wgsl?raw'
 
 import chroma from "chroma-js"

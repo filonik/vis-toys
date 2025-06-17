@@ -4,7 +4,8 @@ import { useEventListener, toReactive } from '@vueuse/core';
 
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
-import type { HTMLElementEventListenerMap, WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
+import type { WebGpuResource, UseWebGpuOptions } from "@/composables/useWebGpu"
+import type {HTMLElementEventListenerMap} from '@/types'
 
 import CodeEditor from '@/components/MonacoEditor.vue'
 import ShareLinkButton from '@/components/ShareLinkButton.vue'

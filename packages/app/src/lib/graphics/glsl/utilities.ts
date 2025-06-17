@@ -25,6 +25,8 @@ export const createShader = (gl: WebGL2RenderingContext, shaderSource: string, s
 export const createProgram = (gl: WebGL2RenderingContext, shaders: Array<WebGLShader | null>) => {
   const program = gl.createProgram();
 
+  if (!program) return null
+  
   shaders.forEach((shader) => {
     if (shader) {
       gl.attachShader(program, shader)
