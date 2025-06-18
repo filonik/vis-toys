@@ -51,94 +51,7 @@ void main() {
     }
 })
 
-export const raymarchImplicitShader: (func: string) => ShaderInfo  = (func) => ({
-    source: {
-        vs: `#version 300 es
-in vec4 aPosition;
-in vec4 aColor;
-
-out vec4 vsColor;
-
-void main() {
-    gl_Position = aPosition.yzwx;
-    vsColor = aColor;
-}
-`,
-        fs: `#version 300 es
-precision highp float;
-in vec4 vsColor;
-out vec4 fsColor;
-
-uniform mat4 uView;
-uniform mat4 uProjection;
-
-uniform vec4 iResolution;
-uniform float iTime;
-
-#ifndef MATRIX_OPS_H_
-#define MATRIX_OPS_H_
-
-// matrix operations
-mat4 translate(vec3 t)
-{
- 	return mat4(
-        vec4(1.,0.,0.,0.),
-        vec4(0.,1.,0.,0.),
-        vec4(0.,0.,1.,0.),
-        vec4(t,1.)
-        );
-}
-mat4 translateInv(vec3 t)
-{
- 	return translate(-t);   
-}
-
-mat4 scale(vec3 s)
-{
- 	return mat4(
-        vec4(s.x,0.,0.,0.),
-        vec4(0.,s.y,0.,0.),
-        vec4(0.,0.,s.z,0.),
-        vec4(0.,0.,0.,1.)
-        );
-}
-mat4 scaleInv(vec3 s)
-{
- 	return scale(1./s);   
-}
-
-mat4 rightToLeft()
-{
-    // 1 0 0  0
-    // 0 1 0  0
-    // 0 0 -1 0
-    // 0 0 0  1
- 	return scale(vec3(1.,1.,-1.));
-}
-
-mat4 rightToLeftInv()
-{
-    // same matrix
-    return rightToLeft();
-}
-
-mat3 rotx(float a) {
-  float ca = cos(a);
-  float sa = sin(a);
-
-  return mat3(1.0, 0.0, 0.0, 0.0, ca, sa, 0.0, -sa, ca);
-}
-
-mat3 roty(float a) {
-  float ca = cos(a);
-  float sa = sin(a);
-
-  return mat3(ca, 0.0, -sa, 0.0, 1.0, 0.0, sa, 0.0, ca);
-}
-	
-#endif // MATRIX_OPS_H_
-
-#ifndef CAMERA_H_
+const CAMERA_H = `#ifndef CAMERA_H_
 #define CAMERA_H_
 
 
@@ -276,33 +189,9 @@ mat4 lookAtInv(vec3 eye, vec3 center, vec3 up)
 
 
 
-#endif //CAMERA_H_
+#endif //CAMERA_H_`
 
-#define vec1 float[1]
-#define mat1 float[1*1]
-
-mat1 outer(in vec1 x, in vec1 y);
-mat2 outer(in vec2 x, in vec2 y);
-mat3 outer(in vec3 x, in vec3 y);
-mat4 outer(in vec4 x, in vec4 y);
-
-mat1 outer(in vec1 x, in vec1 y) {
-  return mat1(x[0] * y[0]);
-}
-
-mat2 outer(in vec2 x, in vec2 y) {
-  return mat2(x * y[0], x * y[1]);
-}
-
-mat3 outer(in vec3 x, in vec3 y) {
-  return mat3(x * y[0], x * y[1], x * y[2]);
-}
-
-mat4 outer(in vec4 x, in vec4 y) {
-  return mat4(x * y[0], x * y[1], x * y[2],  x * y[3]);
-}
-
-float _pos_(in float x) { return +x; }
+const BUILTIN_H = `float _pos_(in float x) { return +x; }
 float _neg_(in float x) { return -x; }
 float _add_(in float x, in float y) { return x+y; }
 float _sub_(in float x, in float y) { return x-y; }
@@ -413,7 +302,122 @@ vec1 _mul_(in vec1 x, in vec1 y) { return vec1(_mul_(x[0*1], y[0*1])); }
 vec1 _div_(in vec1 x, in float y) { return vec1(_div_(x[0*1], y)); }
 vec1 _div_(in float x, in vec1 y) { return vec1(_div_(x, y[0*1])); }
 vec1 _div_(in vec1 x, in vec1 y) { return vec1(_div_(x[0*1], y[0*1])); }
+`
 
+export const raymarchImplicitShader: (func: string) => ShaderInfo  = (func) => ({
+    source: {
+        vs: `#version 300 es
+in vec4 aPosition;
+in vec4 aColor;
+
+out vec4 vsColor;
+
+void main() {
+    gl_Position = aPosition.yzwx;
+    vsColor = aColor;
+}
+`,
+        fs: `#version 300 es
+precision highp float;
+in vec4 vsColor;
+out vec4 fsColor;
+
+uniform mat4 uView;
+uniform mat4 uProjection;
+
+uniform vec4 iResolution;
+uniform float iTime;
+
+#ifndef MATRIX_OPS_H_
+#define MATRIX_OPS_H_
+
+// matrix operations
+mat4 translate(vec3 t)
+{
+ 	return mat4(
+        vec4(1.,0.,0.,0.),
+        vec4(0.,1.,0.,0.),
+        vec4(0.,0.,1.,0.),
+        vec4(t,1.)
+        );
+}
+mat4 translateInv(vec3 t)
+{
+ 	return translate(-t);   
+}
+
+mat4 scale(vec3 s)
+{
+ 	return mat4(
+        vec4(s.x,0.,0.,0.),
+        vec4(0.,s.y,0.,0.),
+        vec4(0.,0.,s.z,0.),
+        vec4(0.,0.,0.,1.)
+        );
+}
+mat4 scaleInv(vec3 s)
+{
+ 	return scale(1./s);   
+}
+
+mat4 rightToLeft()
+{
+    // 1 0 0  0
+    // 0 1 0  0
+    // 0 0 -1 0
+    // 0 0 0  1
+ 	return scale(vec3(1.,1.,-1.));
+}
+
+mat4 rightToLeftInv()
+{
+    // same matrix
+    return rightToLeft();
+}
+
+mat3 rotx(float a) {
+  float ca = cos(a);
+  float sa = sin(a);
+
+  return mat3(1.0, 0.0, 0.0, 0.0, ca, sa, 0.0, -sa, ca);
+}
+
+mat3 roty(float a) {
+  float ca = cos(a);
+  float sa = sin(a);
+
+  return mat3(ca, 0.0, -sa, 0.0, 1.0, 0.0, sa, 0.0, ca);
+}
+	
+#endif // MATRIX_OPS_H_
+
+${CAMERA_H}
+
+#define vec1 float[1]
+#define mat1 float[1*1]
+
+mat1 outer(in vec1 x, in vec1 y);
+mat2 outer(in vec2 x, in vec2 y);
+mat3 outer(in vec3 x, in vec3 y);
+mat4 outer(in vec4 x, in vec4 y);
+
+mat1 outer(in vec1 x, in vec1 y) {
+  return mat1(x[0] * y[0]);
+}
+
+mat2 outer(in vec2 x, in vec2 y) {
+  return mat2(x * y[0], x * y[1]);
+}
+
+mat3 outer(in vec3 x, in vec3 y) {
+  return mat3(x * y[0], x * y[1], x * y[2]);
+}
+
+mat4 outer(in vec4 x, in vec4 y) {
+  return mat4(x * y[0], x * y[1], x * y[2],  x * y[3]);
+}
+
+${BUILTIN_H}
 
 struct d1e1 {
   float s;
@@ -522,6 +526,14 @@ d2e3 _sqrt_(in d2e3 a)
     return d2e3(v, da * a.g,  da * a.h + dda * outer(a.g,a.g));
 }
 
+d2e3 _pow_(in d2e3 a, in float b)
+{
+    float v = pow(a.s, b); // value f(a(x))
+    float da = b*pow(a.s,b-1.0); // first derivative f'(a(x))
+    float dda = b*(b-1.0)*pow(a.s,b-2.0); // second derivative f''(a(x))
+    return d2e3(v , da * a.g,  da * a.h + dda * outer(a.g,a.g));
+}
+
 d2e3 _pow_(in d2e3 x, in int n)
 {
     // based on https://en.wikipedia.org/wiki/Exponentiation_by_squaring
@@ -552,6 +564,22 @@ d2e3 _pow_(in d2e3 x, in int n)
     }
     
     return _mul_(x, y);
+}
+
+d2e3 _cos_(in d2e3 a)
+{
+    float v = cos(a.s); // value f(a(x))
+    float da = -sin(a.s); // first derivative f'(a(x))
+    float dda = -cos(a.s); // second derivative f''(a(x))
+    return d2e3(v , da * a.g,  da * a.h + dda * outer(a.g,a.g));
+}
+
+d2e3 _sin_(in d2e3 a)
+{
+    float v = sin(a.s); // value f(a(x))
+    float da = cos(a.s); // first derivative f'(a(x))
+    float dda = -sin(a.s); // second derivative f''(a(x))
+    return d2e3(v , da * a.g,  da * a.h + dda * outer(a.g,a.g));
 }
 
 #define d2e2vec1 d2e2[1]

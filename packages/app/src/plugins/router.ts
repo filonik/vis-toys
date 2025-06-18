@@ -1,7 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-import EditorView from '@/views/EditorView.vue'
-//import CanvasView from '@/views/CanvasView.vue'
+import HomeView from '@/views/HomeView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -9,7 +8,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: EditorView
+      component: HomeView
     },
     {
       path: '/parametric-surface/',

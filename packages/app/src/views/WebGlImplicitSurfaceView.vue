@@ -29,6 +29,11 @@ const editorConfig = {
   extensions: [basicSetup, StreamLanguage.define(shader)]
 }
 
+const DEFAULT_SOURCE = `@plot_implicit
+d2e3 f(in d2e3vec3 x) {
+  return sin(x[0]) + cos(x[1]) + x[2];
+}
+`
 /*
 const DEFAULT_SOURCE = `@plot_implicit
 d2e3 f(in d2e3vec3 x) {
@@ -36,6 +41,7 @@ d2e3 f(in d2e3vec3 x) {
 }
 `
 */
+/*
 const DEFAULT_SOURCE = `@plot_implicit
 d2e3 f(in d2e3vec3 x) {
   float R = 2.;
@@ -45,6 +51,24 @@ d2e3 f(in d2e3vec3 x) {
   return lhs*lhs - rhs;
 }
 `
+*/
+/*
+const DEFAULT_SOURCE = `@plot_implicit
+d2e3 f(in d2e3vec3 x) {
+  float c2 = 2.;
+  d2e3 f1 = pow(x[0] - c2, 2.)*pow(x[0] + c2, 2.);
+  d2e3 f2 = pow(x[1] - c2, 2.)*pow(x[1] + c2, 2.);
+  d2e3 f3 = pow(x[2] - c2, 2.)*pow(x[2] + c2, 2.);
+  
+  d2e3 f4 = 3.*(x[0]*x[0]*x[1]*x[1] + x[0]*x[0]*x[2]*x[2] + x[1]*x[1]*x[2]*x[2]);
+
+  d2e3 f5 = 6.*(x[0]*x[1]*x[2]);
+  d2e3 f6 = -10.*(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
+
+  return f1 + f2 + f3 + f4 + f5 + f6 + 22.;
+}
+`
+*/
 
 type State = {
   source: string
@@ -287,7 +311,7 @@ const mesh: WebGlStatefulResource<WebGLVertexArrayObject> & {valid: boolean} = {
 
 const projection = mat4f.perspective(Math.PI/4, 1920/1080, 0.1, 1000.0)
 
-const { listeners, transform } = useCamera([-2, 0, 0])
+const { listeners, transform } = useCamera([-8, 0, 0])
 
 const renderer: WebGlResource = {
     onCreate(args) {
@@ -341,7 +365,6 @@ const save = (state: State) => {
         quiet: true
     })
 
-    console.log(result.source)
     shaderInfo = raymarchImplicitShader(result.source)
 
     program.valid = false

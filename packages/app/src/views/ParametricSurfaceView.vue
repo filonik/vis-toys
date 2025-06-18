@@ -51,7 +51,7 @@ type State = {
   options: Options
 }
 
-const stateRef = ref<State>(examples.wave2)
+const stateRef = ref<State>(examples.dcl3Triangle)
 
 const state = toReactive(stateRef)
 

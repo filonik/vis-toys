@@ -495,6 +495,90 @@ export const dcl3Line = {
   },
 }
 
+const dcl3TriangleSource = `fn dcl3_rotor(k: f32, x: vec2f) -> dcl3rot {
+  let r01 = dcl3rot_exp(k, dcl3rot_muls(dcl3rot_e12, 0.5*x[0]));
+  let r12 = dcl3rot_exp(k, dcl3rot_muls(dcl3rot_e01, 0.5*x[1]));
+  return dcl3rot_mul(k, r01, r12);
+}
+
+fn dcl3_ncoord(k: f32, x: vec2f) -> dcl3rot {
+  let r = dcl3_rotor(k, x);
+  return dcl3rot_sw(k, dcl3rot_e01, r);
+}
+
+const A = vec2f(1., 0.*TAU/3.);
+const B = vec2f(1., 1.*TAU/3.);
+const C = vec2f(1., 2.*TAU/3.);
+
+@plot
+fn f(x: vec2f) -> vec3f {
+  let k = uGlobal.args[0];
+  return dcl3_ncoord(k, x).xyz;
+}
+
+@plot
+fn lAB(t: vec1f) -> vec3f {
+  let k = uGlobal.args[0];
+  let a = dcl3_ncoord(k, A);
+  let b = dcl3_ncoord(k, B);
+  let view = dcl3_rotor(k, uGlobal.args.yz);
+  return dcl3rot_sw(k, dcl3rot_mix(k, a, b, t), view).xyz;
+}
+
+@plot
+fn lBC(t: vec1f) -> vec3f {
+  let k = uGlobal.args[0];
+  let b = dcl3_ncoord(k, B);
+  let c = dcl3_ncoord(k, C);
+  let view = dcl3_rotor(k, uGlobal.args.yz);
+  return dcl3rot_sw(k, dcl3rot_mix(k, b, c, t), view).xyz;
+}
+
+@plot
+fn lCA(t: vec1f) -> vec3f {
+  let k = uGlobal.args[0];
+  let c = dcl3_ncoord(k, C);
+  let a = dcl3_ncoord(k, A);
+  let view = dcl3_rotor(k, uGlobal.args.yz);
+  return dcl3rot_sw(k, dcl3rot_mix(k, c, a, t), view).xyz;
+}
+`
+
+export const dcl3Triangle = {
+  source: dcl3TriangleSource,
+  options: {
+    args: [1,0,0,0],
+    functions: [{
+      color: '#555555',
+      extent: [
+        [0, -Math.PI],
+        [Math.PI, +Math.PI],
+      ],
+      visible: true,
+    },{
+      color: '#ffffff',
+      extent: [
+        [0],
+        [1],
+      ],
+      visible: true,
+    },{
+      color: '#ffffff',
+      extent: [
+        [0],
+        [1],
+      ],
+      visible: true,
+    },{
+      color: '#ffffff',
+      extent: [
+        [0],
+        [1],
+      ],
+      visible: true,
+    }]
+  },
+}
 /*
 const DEFAULT_SOURCE = `@plot
 fn f(x: f32) -> vec2f {

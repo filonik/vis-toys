@@ -5,6 +5,10 @@ alias dcl4vec = vec4f;
 alias dcl2rot = vec2f;
 alias dcl3rot = vec4f;
 
+const dcl3rot_e01 = dcl3rot(1, 0, 0, 0);
+const dcl3rot_e02 = dcl3rot(0, 1, 0, 0);
+const dcl3rot_e12 = dcl3rot(0, 0, 1, 0);
+
 fn dcl3vec_mul(k: f32, x: dcl3vec, y: dcl3vec) -> dcl3rot {
   return dcl3rot(
     k*x[2]*y[1] - k*x[1]*y[2],

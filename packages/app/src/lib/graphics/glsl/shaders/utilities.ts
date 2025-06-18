@@ -1,10 +1,10 @@
 import { parser, generate } from '@shaderfrog/glsl-parser';
-import { visit, type LiteralNode, type IdentifierNode, type FunctionCallNode, type Whitespace } from '@shaderfrog/glsl-parser/ast';
+import { visit, type LiteralNode, type IdentifierNode, type FunctionCallNode, type Whitespace, type AstNode } from '@shaderfrog/glsl-parser/ast';
 import { preprocess } from '@shaderfrog/glsl-parser/preprocessor';
 
 import * as A from "@/lib/arrays"
 
-import { UNARY_OPERATORS, BINARY_OPERATORS } from "@/lib/graphics/glsl/shaders"
+import { UNARY_OPERATORS, BINARY_OPERATORS, UNARY_FUNCTIONS } from "@/lib/graphics/glsl/shaders"
 
 const literal = <T>(literal: T, whitespace: Whitespace): LiteralNode<T> => ({
   type: 'literal',
@@ -50,10 +50,18 @@ const replaceBinary: (name: string, args: any) => FunctionCallNode = (name, args
     "rp": literal(")", ""),
 })
 
+const replaceFunctionCall: (name: string, args: any) => FunctionCallNode = (name, args) => ({
+    "type": "function_call",
+    "identifier":  identifier(name),
+    "lp": literal("(", ""),
+    "args": args,
+    "rp": literal(")", ""),
+})
+
 export const process = (source: string, options?: parser.ParserOptions) => {
   //preprocess(source, {})
   const ast = parser.parse(source, options)
-  console.log(ast)
+  const isIdentifier = (node: AstNode) => node.type == "identifier"
   visit(ast, {
     unary: {
       enter(path) {
@@ -70,6 +78,17 @@ export const process = (source: string, options?: parser.ParserOptions) => {
         if (operator in BINARY_OPERATORS) {
           const replacementNode = replaceBinary(BINARY_OPERATORS[operator], [path.node.left, literal(",", " "), path.node.right])
           path.replaceWith(replacementNode)
+        }
+      }
+    },
+    function_call: {
+      enter(path) {
+        if (isIdentifier(path.node.identifier)) {
+          const identifer = path.node.identifier.identifier
+          if (identifer in UNARY_FUNCTIONS) {
+            const replacementNode = replaceFunctionCall(UNARY_FUNCTIONS[identifer], path.node.args)
+            path.replaceWith(replacementNode)
+          }
         }
       }
     }

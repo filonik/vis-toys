@@ -43,13 +43,13 @@ export const UNARY_FUNCTIONS: Record<string, string> = {
   "atanh": "_atanh_",
   "atan2": "_atan2_",
   "sqrt": "_sqrt_",
-  "cbrt": "_cbrt_",
+  //"cbrt": "_cbrt_",
+  "ceil": "_ceil_",
+  "floor": "_floor_",
   "pow": "_pow_",
   "mix": "_mix_",
   "min": "_min_",
   "max": "_max_",
-  "ceil": "_ceil_",
-  "floor": "_floor_",
 }
 
 type ArrayType = {
