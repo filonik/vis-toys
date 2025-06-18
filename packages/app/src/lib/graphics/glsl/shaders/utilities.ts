@@ -61,7 +61,7 @@ const replaceFunctionCall: (name: string, args: any) => FunctionCallNode = (name
 export const process = (source: string, options?: parser.ParserOptions) => {
   //preprocess(source, {})
   const ast = parser.parse(source, options)
-  const isIdentifier: (node: AstNode) => node is IdentifierNode = (node) => node.type === "identifier"
+  const isIdentifier = (node: AstNode): node is IdentifierNode => node.type === "identifier"
   visit(ast, {
     unary: {
       enter(path) {
