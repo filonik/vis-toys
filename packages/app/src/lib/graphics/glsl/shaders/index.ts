@@ -26,6 +26,10 @@ export const BINARY_OPERATORS: Record<string, string> = {
   "^": "_xor_",
 }
 
+export const TERNARY_OPERATORS: Record<string, string> = {
+  "?:": "_cond_",
+}
+
 export const UNARY_FUNCTIONS: Record<string, string> = {
   "exp": "_exp_",
   "log": "_log_",
@@ -41,15 +45,20 @@ export const UNARY_FUNCTIONS: Record<string, string> = {
   "acosh": "_acosh_",
   "asinh": "_asinh_",
   "atanh": "_atanh_",
-  "atan2": "_atan2_",
   "sqrt": "_sqrt_",
-  //"cbrt": "_cbrt_",
   "ceil": "_ceil_",
   "floor": "_floor_",
+}
+
+export const BINARY_FUNCTIONS: Record<string, string> = {
+  "atan": "_atan_",
   "pow": "_pow_",
-  "mix": "_mix_",
   "min": "_min_",
   "max": "_max_",
+}
+
+export const TERNARY_FUNCTIONS: Record<string, string> = {
+  "mix": "_mix_",
 }
 
 type ArrayType = {
@@ -151,8 +160,11 @@ const builtinGetItem: (type: ArrayType, index: Array<number>) => string = (type,
   }
 }
 
-const builtinUnaryOperator = (operator: string) => (t0: ArrayType, r0: ArrayType) => `inline ${r0.name} ${UNARY_OPERATORS[operator]}(in ${t0.name} x) { return ${operator}x; }`
-const builtinBinaryOperator = (operator: string) => (t0: ArrayType, t1: ArrayType, r0: ArrayType) => `inline ${r0.name} ${BINARY_OPERATORS[operator]}(in ${t0.name} x, in ${t1.name} y) { return x${operator}y; }`
+const builtinUnaryOperator = (operator: string) => (t0: ArrayType, r0: ArrayType) => `${r0.name} ${UNARY_OPERATORS[operator]}(in ${t0.name} x) { return ${operator}x; }`
+const builtinBinaryOperator = (operator: string) => (t0: ArrayType, t1: ArrayType, r0: ArrayType) => `${r0.name} ${BINARY_OPERATORS[operator]}(in ${t0.name} x, in ${t1.name} y) { return x${operator}y; }`
+
+const builtinUnaryFunction = (func: string) => (t0: ArrayType, r0: ArrayType) => `${r0.name} ${UNARY_FUNCTIONS[func]}(in ${t0.name} x) { return ${func}(x); }`
+const builtinBinaryFunction = (func: string) => (t0: ArrayType, t1: ArrayType, r0: ArrayType) => `${r0.name} ${BINARY_FUNCTIONS[func]}(in ${t0.name} x, in ${t1.name} y) { return ${func}(x, y); }`
 
 const customArrayUnaryOperator = (operator: string) => (t0: ArrayType, r0: ArrayType) => `${r0.name} ${UNARY_OPERATORS[operator]}(in ${t0.name} x) { return ${r0.name}(${
   A.indices(r0.shape).map((index) => `${UNARY_OPERATORS[operator]}(x${builtinGetItem(t0, index)})`).join(',')
@@ -168,6 +180,11 @@ const generateBuiltinScalarOperators: (type: ArrayType) => string[] = (type) => 
   ADDITIVE_OPERATORS.map((operator) => builtinUnaryOperator(operator)(type, type)),
   ADDITIVE_OPERATORS.map((operator) => builtinBinaryOperator(operator)(type, type, type)),
   MULTIPLICATIVE_OPERATORS.map((operator) => builtinBinaryOperator(operator)(type, type, type)),
+)
+
+const generateBuiltinScalarFunctions: (type: ArrayType) => string[] = (type) => A.concat(
+  Object.keys(UNARY_FUNCTIONS).map((operator) => builtinUnaryFunction(operator)(type, type)),
+  Object.keys(BINARY_FUNCTIONS).map((operator) => builtinBinaryFunction(operator)(type, type, type)),
 )
 
 const generateBuiltinArrayOperators: (type: ArrayType) => string[] = (type) => A.concat(
@@ -206,10 +223,19 @@ const importBuiltinOperators = () => A.concat(
   BUILTIN_MATRIX_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
 ).join('\n\n')
 
+const importBuiltinFunctions = () => A.concat(
+  BUILTIN_SCALAR_TYPE_NAMES.map((type) => generateBuiltinScalarFunctions(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+  //BUILTIN_VECTOR_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+  //BUILTIN_MATRIX_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+).join('\n\n')
+
+
 export const importBuiltin = () =>`#ifndef BUILTIN_H
 #define BUILTIN_H
 
 ${importBuiltinOperators()}
+
+${importBuiltinFunctions()}
 
 #endif
 `

@@ -21,6 +21,10 @@ const implicitSurfaces = [
         path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIHJldHVybiBzaW4oeFswXSkgKyBjb3MoeFsxXSkgKyB4WzJdO1xufSd9'
     },
     {
+        title: "Wave (Animated)",
+        path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIHJldHVybiBzaW4oeFswXStjb3MoaVRpbWUpKSArIGNvcyh4WzFdK3NpbihpVGltZSkpICsgeFsyXTtcbn0nfQ'
+    },
+    {
         title: "Torus",
         path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIGZsb2F0IFIgPSAyLjtcbiAgZmxvYXQgciA9IDEuO1xuICBkMmUzIGxocyA9IHhbMF0qeFswXSArIHhbMV0qeFsxXSArIHhbMl0qeFsyXSArIFIqUiAtICByKnI7XG4gIGQyZTMgcmhzID0gNC4qUipSICogKHhbMF0qeFswXSArIHhbMV0qIHhbMV0pO1xuICByZXR1cm4gbGhzKmxocyAtIHJocztcbn0nfQ'
     },
@@ -41,7 +45,6 @@ const implicitSurfaces = [
         path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIGZsb2F0IGMyID0gMi47XG4gIGQyZTMgZjEgPSBwb3coeFswXSAtIGMyLCAyLikqcG93KHhbMF0gKyBjMiwgMi4pO1xuICBkMmUzIGYyID0gcG93KHhbMV0gLSBjMiwgMi4pKnBvdyh4WzFdICsgYzIsIDIuKTtcbiAgZDJlMyBmMyA9IHBvdyh4WzJdIC0gYzIsIDIuKSpwb3coeFsyXSArIGMyLCAyLik7XG4gIFxuICBkMmUzIGY0ID0gMy4qKHhbMF0qeFswXSp4WzFdKnhbMV0gKyB4WzBdKnhbMF0qeFsyXSp4WzJdICsgeFsxXSp4WzFdKnhbMl0qeFsyXSk7XG5cbiAgZDJlMyBmNSA9IDYuKih4WzBdKnhbMV0qeFsyXSk7XG4gIGQyZTMgZjYgPSAtMTAuKih4WzBdKnhbMF0gKyB4WzFdKnhbMV0gKyB4WzJdKnhbMl0pO1xuXG4gIHJldHVybiBmMSArIGYyICsgZjMgKyBmNCArIGY1ICsgZjYgKyAyMi47XG59XG4nfQ'
     }
 ]
-
 </script>
 
 <template>
