@@ -1,4 +1,4 @@
-import{C as k,n as S,t as F}from"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-CWzvUIeD.js";import{s as M,_ as B,a as V,p as G}from"./utilities-CkWpSzgo.js";import{f as H,S as O,_ as q}from"./index-CxPv0WyP.js";import{o as j,z as W,d as z,c as w,r as b,b as C,e as I,q as $,g as h,k as P,F as K,u as g,f as Y}from"./index-BwXBi3eP.js";import{u as X}from"./useCamera-BAxPrexQ.js";import{m as J,_ as Q}from"./_plugin-vue_export-helper-BvaNOr7l.js";function Z(o,i,u={},d={}){let l=null;const{pause:a,resume:x}=k(r=>{var c;l&&((c=i.onRender)==null||c.call(i,{...l,...r}))},{immediate:!1});for(const[r,c]of Object.entries(u))S(o,r,c);j(()=>{var r;t(),l&&((r=i.onCreate)==null||r.call(i,l),x())}),W(()=>{var r;l&&(a(),(r=i.onDelete)==null||r.call(i,l)),_()});const t=()=>{console.log("useWebGl::initialize");const r=o.value;if(!r){console.log("Invalid canvas.");return}const c=r.getContext("webgl2",d.options);if(!c){console.log("Invalid context.");return}l={context:c}},_=()=>{console.log("useWebGl::finalize"),l=null};return!0}const nn=["width","height"],en={key:1,class:"flex items-center justify-center"},tn=z({__name:"WebGlCanvas",props:{renderer:{},options:{default:()=>({size:[1920,1080]})},listeners:{default:()=>({})}},setup(o){const i=o,u=w(()=>{var x;return((x=i.options.size)==null?void 0:x[0])??1920}),d=w(()=>{var x;return((x=i.options.size)==null?void 0:x[1])??1080}),l=b(),a=b(!0);return a.value=Z(l,i.renderer,i.listeners,i.options),(x,t)=>a.value?(C(),I("canvas",{key:0,ref_key:"canvasRef",ref:l,class:"cursor-default",width:u.value,height:d.value,tabindex:"1"},null,8,nn)):(C(),I("div",en,"WebGPU not supported."))}}),E=(o,i,u)=>{const d=o.createShader(u);if(!d)return console.error("Error creating shader."),null;if(o.shaderSource(d,i),o.compileShader(d),!o.getShaderParameter(d,o.COMPILE_STATUS)){const a=o.getShaderInfoLog(d);return console.error(`Error compiling shader: ${a}`),o.deleteShader(d),null}return d},an=(o,i)=>{const u=o.createProgram();if(!u)return null;if(i.forEach(l=>{l&&o.attachShader(u,l)}),o.linkProgram(u),!o.getProgramParameter(u,o.LINK_STATUS)){const l=o.getProgramInfoLog(u);return console.error(`Error in program linking: ${l}`),o.deleteProgram(u),null}return u},rn=`#ifndef BUILTIN_H
+import{C as k,n as S,t as F}from"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-BiELzYaB.js";import{s as M,_ as B,a as V,p as q}from"./utilities-BjSpYvY9.js";import{f as G,S as H,_ as O}from"./index-CR3NzD-O.js";import{o as j,z as W,d as z,c as R,r as b,b as C,e as I,q as $,g as h,k as P,F as K,u as g,f as Y}from"./index-CB0EF2dQ.js";import{u as X}from"./useCamera-QnfjA7_D.js";import{m as J,_ as Q}from"./_plugin-vue_export-helper-DbqndbrS.js";function Z(_,o,u={},c={}){let l=null;const{pause:a,resume:s}=k(r=>{var d;l&&((d=o.onRender)==null||d.call(o,{...l,...r}))},{immediate:!1});for(const[r,d]of Object.entries(u))S(_,r,d);j(()=>{var r;t(),l&&((r=o.onCreate)==null||r.call(o,l),s())}),W(()=>{var r;l&&(a(),(r=o.onDelete)==null||r.call(o,l)),i()});const t=()=>{console.log("useWebGl::initialize");const r=_.value;if(!r){console.log("Invalid canvas.");return}const d=r.getContext("webgl2",c.options);if(!d){console.log("Invalid context.");return}l={context:d}},i=()=>{console.log("useWebGl::finalize"),l=null};return!0}const nn=["width","height"],en={key:1,class:"flex items-center justify-center"},tn=z({__name:"WebGlCanvas",props:{renderer:{},options:{default:()=>({size:[1920,1080]})},listeners:{default:()=>({})}},setup(_){const o=_,u=R(()=>{var s;return((s=o.options.size)==null?void 0:s[0])??1920}),c=R(()=>{var s;return((s=o.options.size)==null?void 0:s[1])??1080}),l=b(),a=b(!0);return a.value=Z(l,o.renderer,o.listeners,o.options),(s,t)=>a.value?(C(),I("canvas",{key:0,ref_key:"canvasRef",ref:l,class:"cursor-default",width:u.value,height:c.value,tabindex:"1"},null,8,nn)):(C(),I("div",en,"WebGPU not supported."))}}),E=(_,o,u)=>{const c=_.createShader(u);if(!c)return console.error("Error creating shader."),null;if(_.shaderSource(c,o),_.compileShader(c),!_.getShaderParameter(c,_.COMPILE_STATUS)){const a=_.getShaderInfoLog(c);return console.error(`Error compiling shader: ${a}`),_.deleteShader(c),null}return c},an=(_,o)=>{const u=_.createProgram();if(!u)return null;if(o.forEach(l=>{l&&_.attachShader(u,l)}),_.linkProgram(u),!_.getProgramParameter(u,_.LINK_STATUS)){const l=_.getProgramInfoLog(u);return console.error(`Error in program linking: ${l}`),_.deleteProgram(u),null}return u},rn=`#ifndef BUILTIN_H
 #define BUILTIN_H
 
 float _pos_(in float x) { return +x; }
@@ -120,7 +120,74 @@ float _pow_(in float x, in float y) { return pow(x, y); }
 float _min_(in float x, in float y) { return min(x, y); }
 float _max_(in float x, in float y) { return max(x, y); }
 
-#endif`,on=`#ifndef CAMERA_H_
+vec2 _exp_(in vec2 x) { return exp(x); }
+vec2 _log_(in vec2 x) { return log(x); }
+vec2 _cos_(in vec2 x) { return cos(x); }
+vec2 _sin_(in vec2 x) { return sin(x); }
+vec2 _tan_(in vec2 x) { return tan(x); }
+vec2 _acos_(in vec2 x) { return acos(x); }
+vec2 _asin_(in vec2 x) { return asin(x); }
+vec2 _atan_(in vec2 x) { return atan(x); }
+vec2 _cosh_(in vec2 x) { return cosh(x); }
+vec2 _sinh_(in vec2 x) { return sinh(x); }
+vec2 _tanh_(in vec2 x) { return tanh(x); }
+vec2 _acosh_(in vec2 x) { return acosh(x); }
+vec2 _asinh_(in vec2 x) { return asinh(x); }
+vec2 _atanh_(in vec2 x) { return atanh(x); }
+vec2 _sqrt_(in vec2 x) { return sqrt(x); }
+vec2 _ceil_(in vec2 x) { return ceil(x); }
+vec2 _floor_(in vec2 x) { return floor(x); }
+vec2 _atan_(in vec2 x, in vec2 y) { return atan(x, y); }
+vec2 _pow_(in vec2 x, in vec2 y) { return pow(x, y); }
+vec2 _min_(in vec2 x, in vec2 y) { return min(x, y); }
+vec2 _max_(in vec2 x, in vec2 y) { return max(x, y); }
+
+vec3 _exp_(in vec3 x) { return exp(x); }
+vec3 _log_(in vec3 x) { return log(x); }
+vec3 _cos_(in vec3 x) { return cos(x); }
+vec3 _sin_(in vec3 x) { return sin(x); }
+vec3 _tan_(in vec3 x) { return tan(x); }
+vec3 _acos_(in vec3 x) { return acos(x); }
+vec3 _asin_(in vec3 x) { return asin(x); }
+vec3 _atan_(in vec3 x) { return atan(x); }
+vec3 _cosh_(in vec3 x) { return cosh(x); }
+vec3 _sinh_(in vec3 x) { return sinh(x); }
+vec3 _tanh_(in vec3 x) { return tanh(x); }
+vec3 _acosh_(in vec3 x) { return acosh(x); }
+vec3 _asinh_(in vec3 x) { return asinh(x); }
+vec3 _atanh_(in vec3 x) { return atanh(x); }
+vec3 _sqrt_(in vec3 x) { return sqrt(x); }
+vec3 _ceil_(in vec3 x) { return ceil(x); }
+vec3 _floor_(in vec3 x) { return floor(x); }
+vec3 _atan_(in vec3 x, in vec3 y) { return atan(x, y); }
+vec3 _pow_(in vec3 x, in vec3 y) { return pow(x, y); }
+vec3 _min_(in vec3 x, in vec3 y) { return min(x, y); }
+vec3 _max_(in vec3 x, in vec3 y) { return max(x, y); }
+
+vec4 _exp_(in vec4 x) { return exp(x); }
+vec4 _log_(in vec4 x) { return log(x); }
+vec4 _cos_(in vec4 x) { return cos(x); }
+vec4 _sin_(in vec4 x) { return sin(x); }
+vec4 _tan_(in vec4 x) { return tan(x); }
+vec4 _acos_(in vec4 x) { return acos(x); }
+vec4 _asin_(in vec4 x) { return asin(x); }
+vec4 _atan_(in vec4 x) { return atan(x); }
+vec4 _cosh_(in vec4 x) { return cosh(x); }
+vec4 _sinh_(in vec4 x) { return sinh(x); }
+vec4 _tanh_(in vec4 x) { return tanh(x); }
+vec4 _acosh_(in vec4 x) { return acosh(x); }
+vec4 _asinh_(in vec4 x) { return asinh(x); }
+vec4 _atanh_(in vec4 x) { return atanh(x); }
+vec4 _sqrt_(in vec4 x) { return sqrt(x); }
+vec4 _ceil_(in vec4 x) { return ceil(x); }
+vec4 _floor_(in vec4 x) { return floor(x); }
+vec4 _atan_(in vec4 x, in vec4 y) { return atan(x, y); }
+vec4 _pow_(in vec4 x, in vec4 y) { return pow(x, y); }
+vec4 _min_(in vec4 x, in vec4 y) { return min(x, y); }
+vec4 _max_(in vec4 x, in vec4 y) { return max(x, y); }
+
+#endif
+`,_n=`#ifndef CAMERA_H_
 #define CAMERA_H_
 
 
@@ -158,7 +225,6 @@ vec3 createRay(vec2 px, mat4 PInv, mat4 VInv)
 }
 
 
-
 mat4 ortho(float l, float r, float b, float t, float n, float f)
 {
 
@@ -181,6 +247,7 @@ mat4 projection(float n, float f)
     // 0 n 0 0	0
     // 0 0 n+f	-fn
     // 0 0 1	0
+
     return mat4(
         vec4(n,0.,0.,0.),
         vec4(0.,n,0.,0.),
@@ -257,7 +324,7 @@ mat4 lookAtInv(vec3 eye, vec3 center, vec3 up)
 }
 
 #endif //CAMERA_H_
-`,_n=`#ifndef DUAL_H_
+`,on=`#ifndef DUAL_H_
 #define DUAL_H_
 
 struct d1e1 {
@@ -532,7 +599,7 @@ mat3 roty(float a) {
 }
 
 #endif // MATRIX_OPS_H_
-`,un=o=>({source:{vs:`#version 300 es
+`,un=_=>({source:{vs:`#version 300 es
 in vec4 aPosition;
 in vec4 aColor;
 
@@ -560,9 +627,9 @@ ${rn}
 
 ${ln}
 
-${on}
-
 ${_n}
+
+${on}
 
 #define SCENE 2
 #define MATERIAL 1
@@ -647,7 +714,7 @@ d2e3 f(in d2e3vec3 x) {
 }
 */
 
-${o}
+${_}
 
 float curvature(in d2e3 x) {
   mat4 G = mat4(x.h);
@@ -861,8 +928,8 @@ void main() {
     //fsColor = vsColor;
     mainImage(fsColor, gl_FragCoord.xy);
 }
-`},attributes:{aPosition:{type:"vec4",location:-1},aColor:{type:"vec4",location:-1}},uniforms:{uProjection:{type:"mat4",location:null},uView:{type:"mat4",location:null},iResolution:{type:"vec4",location:null},iTime:{type:"float",location:null}}}),sn={class:"flex flex-col"},dn=`@plot_implicit
+`},attributes:{aPosition:{type:"vec4",location:-1},aColor:{type:"vec4",location:-1}},uniforms:{uProjection:{type:"mat4",location:null},uView:{type:"mat4",location:null},iResolution:{type:"vec4",location:null},iTime:{type:"float",location:null}}}),xn={class:"flex flex-col"},cn=`@plot_implicit
 d2e3 f(in d2e3vec3 x) {
   return sin(x[0]) + cos(x[1]) + x[2];
 }
-`,xn=z({__name:"WebGlImplicitSurfaceView",setup(o){const i={extensions:[H,O.define(M)]},u=b({source:dn}),d=F(u),l={options:{alpha:!0,premultipliedAlpha:!1},size:[1920,1080]};let a=null;const x={mode:0,count:6,attributes:{aPosition:{data:new Float32Array([1,1,1,0,1,-1,1,0,1,1,-1,0,1,-1,-1,0])},aColor:{data:new Float32Array([1,1,0,1,0,1,0,1,1,0,0,1,0,0,0,1])},aIndex:{data:new Int32Array([0,1,2,3,2,1])}}},t={value:null,valid:!1,onCreate({context:n}){if(console.log("Program::onCreate"),!!a&&(t.value=an(n,[E(n,a.source.vs,n.VERTEX_SHADER),E(n,a.source.fs,n.FRAGMENT_SHADER)]),!!t.value)){for(let e of Object.keys(a.attributes))a.attributes[e].location=n.getAttribLocation(t.value,e);for(let e of Object.keys(a.uniforms))a.uniforms[e].location=n.getUniformLocation(t.value,e);t.valid=!0}},onUpdate(n){var e,s;t.valid||((e=t.onDelete)==null||e.call(t,n),(s=t.onCreate)==null||s.call(t,n))},onDelete({context:n}){console.log("Program::onDelete"),n.deleteProgram(t.value),t.value=null}},_={aPosition:{value:null,onCreate({context:n}){_.aPosition.value=n.createBuffer()},onUpdate({context:n}){_.aPosition.value&&(n.bindBuffer(n.ARRAY_BUFFER,_.aPosition.value),n.bufferData(n.ARRAY_BUFFER,x.attributes.aPosition.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(_.aPosition.value),_.aPosition.value=null}},aColor:{value:null,onCreate({context:n}){_.aColor.value=n.createBuffer()},onUpdate({context:n}){_.aColor.value&&(n.bindBuffer(n.ARRAY_BUFFER,_.aColor.value),n.bufferData(n.ARRAY_BUFFER,x.attributes.aColor.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(_.aColor.value),_.aColor.value=null}},aIndex:{value:null,onCreate({context:n}){_.aIndex.value=n.createBuffer()},onUpdate({context:n}){_.aIndex.value&&(n.bindBuffer(n.ELEMENT_ARRAY_BUFFER,_.aIndex.value),n.bufferData(n.ELEMENT_ARRAY_BUFFER,x.attributes.aIndex.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(_.aIndex.value),_.aIndex.value=null}}},r={value:null,valid:!1,onCreate(n){var s,f,m,v,y,p,R;const{context:e}=n;r.value=e.createVertexArray(),(f=(s=_.aPosition).onCreate)==null||f.call(s,n),(v=(m=_.aColor).onCreate)==null||v.call(m,n),(p=(y=_.aIndex).onCreate)==null||p.call(y,n),(R=r.onUpdate)==null||R.call(r,n)},onUpdate(n){var s,f,m,v,y,p;if(!a||!r.value)return;const{context:e}=n;e.bindVertexArray(r.value),(f=(s=_.aPosition).onUpdate)==null||f.call(s,n),a.attributes.aPosition.location!=-1&&(e.enableVertexAttribArray(a.attributes.aPosition.location),e.vertexAttribPointer(a.attributes.aPosition.location,4,e.FLOAT,!1,0,0)),(v=(m=_.aColor).onUpdate)==null||v.call(m,n),a.attributes.aColor.location!=-1&&(e.enableVertexAttribArray(a.attributes.aColor.location),e.vertexAttribPointer(a.attributes.aColor.location,4,e.FLOAT,!1,0,0)),(p=(y=_.aIndex).onUpdate)==null||p.call(y,n),r.valid=!0},onDelete({context:n}){n.deleteVertexArray(r.value),r.value=null}},c=J.perspective(Math.PI/4,1920/1080,.1,1e3),{listeners:T,transform:D}=X([-8,0,0]),U={onCreate(n){var e,s;(e=t.onCreate)==null||e.call(t,n),(s=r.onCreate)==null||s.call(r,n)},onRender(n){var f,m,v;if(!a)return;(f=t.onUpdate)==null||f.call(t,n);const{context:e,timestamp:s}=n;e.clearColor(0,0,0,0),e.clear(e.COLOR_BUFFER_BIT),e.useProgram(t.value),e.uniformMatrix4fv(a.uniforms.uView.location,!1,D.value),e.uniformMatrix4fv(a.uniforms.uProjection.location,!1,c),e.uniform4fv(a.uniforms.iResolution.location,[((m=l.size)==null?void 0:m[0])??0,((v=l.size)==null?void 0:v[1])??0,0,0]),e.uniform1f(a.uniforms.iTime.location,s/1e3),e.bindVertexArray(r.value),e.drawElements(e.TRIANGLES,x.count,e.UNSIGNED_INT,0)},onDelete(n){var e;(e=t.onDelete)==null||e.call(t,n)}},L=n=>({source:n.replaceAll("@plot_implicit","/*@plot_implicit*/")}),A=n=>{const e=L(n.source);e.source=G(e.source,{quiet:!0}),a=un(e.source),t.valid=!1},N=n=>{switch(n.key){case"Enter":return n.shiftKey;case"s":case"S":return n.ctrlKey||n.metaKey;default:return!1}};return S(document,"keydown",n=>{N(n)&&(n.stopPropagation(),n.preventDefault(),A(d))}),$(u,A,{immediate:!0}),(n,e)=>(C(),I(K,null,[h(B,{title:"Implicit Surface",modelValue:u.value,"onUpdate:modelValue":e[0]||(e[0]=s=>u.value=s)},null,8,["modelValue"]),h(V,null,{input:P(()=>[h(q,{class:"h-full",modelValue:g(d).source,"onUpdate:modelValue":e[1]||(e[1]=s=>g(d).source=s),options:i},null,8,["modelValue"])]),output:P(()=>[Y("div",sn,[h(tn,{renderer:U,listeners:g(T),options:l},null,8,["listeners"])])]),_:1})],64))}}),hn=Q(xn,[["__scopeId","data-v-329f1625"]]);export{hn as default};
+`,sn=z({__name:"WebGlImplicitSurfaceView",setup(_){const o={extensions:[G,H.define(M)]},u=b({source:cn}),c=F(u),l={options:{alpha:!0,premultipliedAlpha:!1},size:[1920,1080]};let a=null;const s={mode:0,count:6,attributes:{aPosition:{data:new Float32Array([1,1,1,0,1,-1,1,0,1,1,-1,0,1,-1,-1,0])},aColor:{data:new Float32Array([1,1,0,1,0,1,0,1,1,0,0,1,0,0,0,1])},aIndex:{data:new Int32Array([0,1,2,3,2,1])}}},t={value:null,valid:!1,onCreate({context:n}){if(console.log("Program::onCreate"),!!a&&(t.value=an(n,[E(n,a.source.vs,n.VERTEX_SHADER),E(n,a.source.fs,n.FRAGMENT_SHADER)]),t.valid=!0,!!t.value)){for(let e of Object.keys(a.attributes))a.attributes[e].location=n.getAttribLocation(t.value,e);for(let e of Object.keys(a.uniforms))a.uniforms[e].location=n.getUniformLocation(t.value,e);t.valid=!0}},onUpdate(n){var e,x;t.valid||((e=t.onDelete)==null||e.call(t,n),(x=t.onCreate)==null||x.call(t,n))},onDelete({context:n}){console.log("Program::onDelete"),n.deleteProgram(t.value),t.value=null}},i={aPosition:{value:null,onCreate({context:n}){i.aPosition.value=n.createBuffer()},onUpdate({context:n}){i.aPosition.value&&(n.bindBuffer(n.ARRAY_BUFFER,i.aPosition.value),n.bufferData(n.ARRAY_BUFFER,s.attributes.aPosition.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(i.aPosition.value),i.aPosition.value=null}},aColor:{value:null,onCreate({context:n}){i.aColor.value=n.createBuffer()},onUpdate({context:n}){i.aColor.value&&(n.bindBuffer(n.ARRAY_BUFFER,i.aColor.value),n.bufferData(n.ARRAY_BUFFER,s.attributes.aColor.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(i.aColor.value),i.aColor.value=null}},aIndex:{value:null,onCreate({context:n}){i.aIndex.value=n.createBuffer()},onUpdate({context:n}){i.aIndex.value&&(n.bindBuffer(n.ELEMENT_ARRAY_BUFFER,i.aIndex.value),n.bufferData(n.ELEMENT_ARRAY_BUFFER,s.attributes.aIndex.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(i.aIndex.value),i.aIndex.value=null}}},r={value:null,valid:!1,onCreate(n){var x,v,f,m,y,p,w;const{context:e}=n;r.value=e.createVertexArray(),(v=(x=i.aPosition).onCreate)==null||v.call(x,n),(m=(f=i.aColor).onCreate)==null||m.call(f,n),(p=(y=i.aIndex).onCreate)==null||p.call(y,n),(w=r.onUpdate)==null||w.call(r,n)},onUpdate(n){var x,v,f,m,y,p;if(!a||!r.value)return;const{context:e}=n;e.bindVertexArray(r.value),(v=(x=i.aPosition).onUpdate)==null||v.call(x,n),a.attributes.aPosition.location!=-1&&(e.enableVertexAttribArray(a.attributes.aPosition.location),e.vertexAttribPointer(a.attributes.aPosition.location,4,e.FLOAT,!1,0,0)),(m=(f=i.aColor).onUpdate)==null||m.call(f,n),a.attributes.aColor.location!=-1&&(e.enableVertexAttribArray(a.attributes.aColor.location),e.vertexAttribPointer(a.attributes.aColor.location,4,e.FLOAT,!1,0,0)),(p=(y=i.aIndex).onUpdate)==null||p.call(y,n),r.valid=!0},onDelete({context:n}){n.deleteVertexArray(r.value),r.value=null}},d=J.perspective(Math.PI/4,1920/1080,.1,1e3),{listeners:T,transform:D}=X([-8,0,0]),U={onCreate(n){var e,x;(e=t.onCreate)==null||e.call(t,n),(x=r.onCreate)==null||x.call(r,n)},onRender(n){var v,f,m;if(!a||((v=t.onUpdate)==null||v.call(t,n),!t.value))return;const{context:e,timestamp:x}=n;e.clearColor(0,0,0,0),e.clear(e.COLOR_BUFFER_BIT),e.useProgram(t.value),e.uniformMatrix4fv(a.uniforms.uView.location,!1,D.value),e.uniformMatrix4fv(a.uniforms.uProjection.location,!1,d),e.uniform4fv(a.uniforms.iResolution.location,[((f=l.size)==null?void 0:f[0])??0,((m=l.size)==null?void 0:m[1])??0,0,0]),e.uniform1f(a.uniforms.iTime.location,x/1e3),e.bindVertexArray(r.value),e.drawElements(e.TRIANGLES,s.count,e.UNSIGNED_INT,0)},onDelete(n){var e;(e=t.onDelete)==null||e.call(t,n)}},L=n=>({source:n.replaceAll("@plot_implicit","/*@plot_implicit*/")}),A=n=>{const e=L(n.source);e.source=q(e.source,{quiet:!0}),a=un(e.source),console.log(a.source.fs),t.valid=!1},N=n=>{switch(n.key){case"Enter":return n.shiftKey;case"s":case"S":return n.ctrlKey||n.metaKey;default:return!1}};return S(document,"keydown",n=>{N(n)&&(n.stopPropagation(),n.preventDefault(),A(c))}),$(u,A,{immediate:!0}),(n,e)=>(C(),I(K,null,[h(B,{title:"Implicit Surface",modelValue:u.value,"onUpdate:modelValue":e[0]||(e[0]=x=>u.value=x)},null,8,["modelValue"]),h(V,null,{input:P(()=>[h(O,{class:"h-full",modelValue:g(c).source,"onUpdate:modelValue":e[1]||(e[1]=x=>g(c).source=x),options:o},null,8,["modelValue"])]),output:P(()=>[Y("div",xn,[h(tn,{renderer:U,listeners:g(T),options:l},null,8,["listeners"])])]),_:1})],64))}}),hn=Q(sn,[["__scopeId","data-v-43e8bc2f"]]);export{hn as default};
