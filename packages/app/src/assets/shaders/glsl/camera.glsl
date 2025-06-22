@@ -36,7 +36,6 @@ vec3 createRay(vec2 px, mat4 PInv, mat4 VInv)
 }
 
 
-
 mat4 ortho(float l, float r, float b, float t, float n, float f)
 {
 
@@ -59,6 +58,7 @@ mat4 projection(float n, float f)
     // 0 n 0 0	0
     // 0 0 n+f	-fn
     // 0 0 1	0
+
     return mat4(
         vec4(n,0.,0.,0.),
         vec4(0.,n,0.,0.),

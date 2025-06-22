@@ -182,6 +182,9 @@ const program: WebGlStatefulResource<WebGLProgram> & {valid: boolean} = {
             createShader(gl, shaderInfo.source.fs, gl.FRAGMENT_SHADER),
         ])
 
+        // TODO: Multiple states? (needsCreate/needsUpdate/error)
+        program.valid = true
+
         if (!program.value) return
 
         for (let key of Object.keys(shaderInfo.attributes)) {
@@ -323,6 +326,8 @@ const renderer: WebGlResource = {
 
         program.onUpdate?.(args)
 
+        if (!program.value) return
+
         const { context: gl, timestamp } = args
 
         gl.clearColor(0,0,0,0)
@@ -366,6 +371,8 @@ const save = (state: State) => {
     })
 
     shaderInfo = raymarchImplicitShader(result.source)
+
+    console.log(shaderInfo.source.fs)
 
     program.valid = false
 }

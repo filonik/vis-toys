@@ -182,11 +182,6 @@ const generateBuiltinScalarOperators: (type: ArrayType) => string[] = (type) => 
   MULTIPLICATIVE_OPERATORS.map((operator) => builtinBinaryOperator(operator)(type, type, type)),
 )
 
-const generateBuiltinScalarFunctions: (type: ArrayType) => string[] = (type) => A.concat(
-  Object.keys(UNARY_FUNCTIONS).map((operator) => builtinUnaryFunction(operator)(type, type)),
-  Object.keys(BINARY_FUNCTIONS).map((operator) => builtinBinaryFunction(operator)(type, type, type)),
-)
-
 const generateBuiltinArrayOperators: (type: ArrayType) => string[] = (type) => A.concat(
   ADDITIVE_OPERATORS.map((operator) => builtinUnaryOperator(operator)(type, type)),
   ADDITIVE_OPERATORS.flatMap((operator) => [
@@ -199,6 +194,23 @@ const generateBuiltinArrayOperators: (type: ArrayType) => string[] = (type) => A
     builtinBinaryOperator(operator)(ARRAY_TYPES_BY_NAME[type.valueType], type, type),
     builtinBinaryOperator(operator)(type, type, type),
   ])
+)
+
+const generateBuiltinScalarFunctions: (type: ArrayType) => string[] = (type) => A.concat(
+  Object.keys(UNARY_FUNCTIONS).map((func) => builtinUnaryFunction(func)(type, type)),
+  Object.keys(BINARY_FUNCTIONS).map((func) => builtinBinaryFunction(func)(type, type, type)),
+)
+
+const generateBuiltinArrayFunctions: (type: ArrayType) => string[] = (type) => A.concat(
+  Object.keys(UNARY_FUNCTIONS).map((func) => builtinUnaryFunction(func)(type, type)),
+  Object.keys(BINARY_FUNCTIONS).map((func) => builtinBinaryFunction(func)(type, type, type)),
+  /*
+  Object.keys(BINARY_FUNCTIONS).flatMap((func) => [
+    builtinBinaryFunction(func)(type, ARRAY_TYPES_BY_NAME[type.valueType], type),
+    builtinBinaryFunction(func)(ARRAY_TYPES_BY_NAME[type.valueType], type, type),
+    builtinBinaryFunction(func)(type, type, type)
+  ]),
+  */
 )
 
 const generateCustomScalarOperators: (type: ArrayType) => string[] = (type) => []
@@ -225,7 +237,7 @@ const importBuiltinOperators = () => A.concat(
 
 const importBuiltinFunctions = () => A.concat(
   BUILTIN_SCALAR_TYPE_NAMES.map((type) => generateBuiltinScalarFunctions(ARRAY_TYPES_BY_NAME[type]).join('\n')),
-  //BUILTIN_VECTOR_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+  BUILTIN_VECTOR_TYPE_NAMES.map((type) => generateBuiltinArrayFunctions(ARRAY_TYPES_BY_NAME[type]).join('\n')),
   //BUILTIN_MATRIX_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
 ).join('\n\n')
 

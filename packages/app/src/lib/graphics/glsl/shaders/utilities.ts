@@ -4,7 +4,7 @@ import { preprocess } from '@shaderfrog/glsl-parser/preprocessor';
 
 import * as A from "@/lib/arrays"
 
-import { UNARY_OPERATORS, BINARY_OPERATORS, UNARY_FUNCTIONS, BINARY_FUNCTIONS } from "@/lib/graphics/glsl/shaders"
+import { UNARY_OPERATORS, BINARY_OPERATORS, UNARY_FUNCTIONS, BINARY_FUNCTIONS, TERNARY_FUNCTIONS } from "@/lib/graphics/glsl/shaders"
 
 const literal = <T>(literal: T, whitespace: Whitespace): LiteralNode<T> => ({
   type: 'literal',
@@ -85,9 +85,20 @@ export const process = (source: string, options?: parser.ParserOptions) => {
       enter(path) {
         if (isIdentifier(path.node.identifier)) {
           const identifer = path.node.identifier.identifier
-          if ((identifer in UNARY_FUNCTIONS) || (identifer in BINARY_FUNCTIONS)) {
+          if (identifer in UNARY_FUNCTIONS) {
             const replacementNode = replaceFunctionCall(UNARY_FUNCTIONS[identifer], path.node.args)
             path.replaceWith(replacementNode)
+            return
+          }
+          if (identifer in BINARY_FUNCTIONS) {
+            const replacementNode = replaceFunctionCall(BINARY_FUNCTIONS[identifer], path.node.args)
+            path.replaceWith(replacementNode)
+            return
+          }
+          if (identifer in TERNARY_FUNCTIONS) {
+            const replacementNode = replaceFunctionCall(TERNARY_FUNCTIONS[identifer], path.node.args)
+            path.replaceWith(replacementNode)
+            return
           }
         }
       }
