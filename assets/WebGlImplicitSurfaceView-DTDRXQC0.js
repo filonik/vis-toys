@@ -1,4 +1,126 @@
-import{C as H,n as R,t as L}from"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-D9cqaGzh.js";import{s as F,_ as M,a as V,p as B}from"./utilities-DgGem3EU.js";import{f as G,S as O,_ as q}from"./index-CcPn7Ze1.js";import{o as j,z as W,d as P,c as I,r as h,b as C,e as E,q as $,g as b,k as A,F as K,u as g,f as Y}from"./index-DOqBBth_.js";import{u as X}from"./useCamera-BeqLjiQ2.js";import{m as J,_ as Q}from"./_plugin-vue_export-helper-C4Css5pS.js";function Z(o,_,l={},d={}){let u=null;const{pause:a,resume:c}=H(r=>{var x;u&&((x=_.onRender)==null||x.call(_,{...u,...r}))},{immediate:!1});for(const[r,x]of Object.entries(l))R(o,r,x);j(()=>{var r;n(),u&&((r=_.onCreate)==null||r.call(_,u),c())}),W(()=>{var r;u&&(a(),(r=_.onDelete)==null||r.call(_,u)),i()});const n=()=>{console.log("useWebGl::initialize");const r=o.value;if(!r){console.log("Invalid canvas.");return}const x=r.getContext("webgl2",d.options);if(!x){console.log("Invalid context.");return}u={context:x}},i=()=>{console.log("useWebGl::finalize"),u=null};return!0}const ee=["width","height"],te={key:1,class:"flex items-center justify-center"},ne=P({__name:"WebGlCanvas",props:{renderer:{},options:{default:()=>({size:[1920,1080]})},listeners:{default:()=>({})}},setup(o){const _=o,l=I(()=>{var c;return((c=_.options.size)==null?void 0:c[0])??1920}),d=I(()=>{var c;return((c=_.options.size)==null?void 0:c[1])??1080}),u=h(),a=h(!0);return a.value=Z(u,_.renderer,_.listeners,_.options),(c,n)=>a.value?(C(),E("canvas",{key:0,ref_key:"canvasRef",ref:u,class:"cursor-default",width:l.value,height:d.value,tabindex:"1"},null,8,ee)):(C(),E("div",te,"WebGPU not supported."))}}),S=(o,_,l)=>{const d=o.createShader(l);if(!d)return console.error("Error creating shader."),null;if(o.shaderSource(d,_),o.compileShader(d),!o.getShaderParameter(d,o.COMPILE_STATUS)){const a=o.getShaderInfoLog(d);return console.error(`Error compiling shader: ${a}`),o.deleteShader(d),null}return d},ae=(o,_)=>{const l=o.createProgram();if(!l)return null;if(_.forEach(u=>{u&&o.attachShader(l,u)}),o.linkProgram(l),!o.getProgramParameter(l,o.LINK_STATUS)){const u=o.getProgramInfoLog(l);return console.error(`Error in program linking: ${u}`),o.deleteProgram(l),null}return l},re=`#ifndef CAMERA_H_
+import{C as k,n as S,t as F}from"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-CWzvUIeD.js";import{s as M,_ as B,a as V,p as G}from"./utilities-CkWpSzgo.js";import{f as H,S as O,_ as q}from"./index-CxPv0WyP.js";import{o as j,z as W,d as z,c as w,r as b,b as C,e as I,q as $,g as h,k as P,F as K,u as g,f as Y}from"./index-BwXBi3eP.js";import{u as X}from"./useCamera-BAxPrexQ.js";import{m as J,_ as Q}from"./_plugin-vue_export-helper-BvaNOr7l.js";function Z(o,i,u={},d={}){let l=null;const{pause:a,resume:x}=k(r=>{var c;l&&((c=i.onRender)==null||c.call(i,{...l,...r}))},{immediate:!1});for(const[r,c]of Object.entries(u))S(o,r,c);j(()=>{var r;t(),l&&((r=i.onCreate)==null||r.call(i,l),x())}),W(()=>{var r;l&&(a(),(r=i.onDelete)==null||r.call(i,l)),_()});const t=()=>{console.log("useWebGl::initialize");const r=o.value;if(!r){console.log("Invalid canvas.");return}const c=r.getContext("webgl2",d.options);if(!c){console.log("Invalid context.");return}l={context:c}},_=()=>{console.log("useWebGl::finalize"),l=null};return!0}const nn=["width","height"],en={key:1,class:"flex items-center justify-center"},tn=z({__name:"WebGlCanvas",props:{renderer:{},options:{default:()=>({size:[1920,1080]})},listeners:{default:()=>({})}},setup(o){const i=o,u=w(()=>{var x;return((x=i.options.size)==null?void 0:x[0])??1920}),d=w(()=>{var x;return((x=i.options.size)==null?void 0:x[1])??1080}),l=b(),a=b(!0);return a.value=Z(l,i.renderer,i.listeners,i.options),(x,t)=>a.value?(C(),I("canvas",{key:0,ref_key:"canvasRef",ref:l,class:"cursor-default",width:u.value,height:d.value,tabindex:"1"},null,8,nn)):(C(),I("div",en,"WebGPU not supported."))}}),E=(o,i,u)=>{const d=o.createShader(u);if(!d)return console.error("Error creating shader."),null;if(o.shaderSource(d,i),o.compileShader(d),!o.getShaderParameter(d,o.COMPILE_STATUS)){const a=o.getShaderInfoLog(d);return console.error(`Error compiling shader: ${a}`),o.deleteShader(d),null}return d},an=(o,i)=>{const u=o.createProgram();if(!u)return null;if(i.forEach(l=>{l&&o.attachShader(u,l)}),o.linkProgram(u),!o.getProgramParameter(u,o.LINK_STATUS)){const l=o.getProgramInfoLog(u);return console.error(`Error in program linking: ${l}`),o.deleteProgram(u),null}return u},rn=`#ifndef BUILTIN_H
+#define BUILTIN_H
+
+float _pos_(in float x) { return +x; }
+float _neg_(in float x) { return -x; }
+float _add_(in float x, in float y) { return x+y; }
+float _sub_(in float x, in float y) { return x-y; }
+float _mul_(in float x, in float y) { return x*y; }
+float _div_(in float x, in float y) { return x/y; }
+
+vec2 _pos_(in vec2 x) { return +x; }
+vec2 _neg_(in vec2 x) { return -x; }
+vec2 _add_(in vec2 x, in float y) { return x+y; }
+vec2 _add_(in float x, in vec2 y) { return x+y; }
+vec2 _add_(in vec2 x, in vec2 y) { return x+y; }
+vec2 _sub_(in vec2 x, in float y) { return x-y; }
+vec2 _sub_(in float x, in vec2 y) { return x-y; }
+vec2 _sub_(in vec2 x, in vec2 y) { return x-y; }
+vec2 _mul_(in vec2 x, in float y) { return x*y; }
+vec2 _mul_(in float x, in vec2 y) { return x*y; }
+vec2 _mul_(in vec2 x, in vec2 y) { return x*y; }
+vec2 _div_(in vec2 x, in float y) { return x/y; }
+vec2 _div_(in float x, in vec2 y) { return x/y; }
+vec2 _div_(in vec2 x, in vec2 y) { return x/y; }
+
+vec3 _pos_(in vec3 x) { return +x; }
+vec3 _neg_(in vec3 x) { return -x; }
+vec3 _add_(in vec3 x, in float y) { return x+y; }
+vec3 _add_(in float x, in vec3 y) { return x+y; }
+vec3 _add_(in vec3 x, in vec3 y) { return x+y; }
+vec3 _sub_(in vec3 x, in float y) { return x-y; }
+vec3 _sub_(in float x, in vec3 y) { return x-y; }
+vec3 _sub_(in vec3 x, in vec3 y) { return x-y; }
+vec3 _mul_(in vec3 x, in float y) { return x*y; }
+vec3 _mul_(in float x, in vec3 y) { return x*y; }
+vec3 _mul_(in vec3 x, in vec3 y) { return x*y; }
+vec3 _div_(in vec3 x, in float y) { return x/y; }
+vec3 _div_(in float x, in vec3 y) { return x/y; }
+vec3 _div_(in vec3 x, in vec3 y) { return x/y; }
+
+vec4 _pos_(in vec4 x) { return +x; }
+vec4 _neg_(in vec4 x) { return -x; }
+vec4 _add_(in vec4 x, in float y) { return x+y; }
+vec4 _add_(in float x, in vec4 y) { return x+y; }
+vec4 _add_(in vec4 x, in vec4 y) { return x+y; }
+vec4 _sub_(in vec4 x, in float y) { return x-y; }
+vec4 _sub_(in float x, in vec4 y) { return x-y; }
+vec4 _sub_(in vec4 x, in vec4 y) { return x-y; }
+vec4 _mul_(in vec4 x, in float y) { return x*y; }
+vec4 _mul_(in float x, in vec4 y) { return x*y; }
+vec4 _mul_(in vec4 x, in vec4 y) { return x*y; }
+vec4 _div_(in vec4 x, in float y) { return x/y; }
+vec4 _div_(in float x, in vec4 y) { return x/y; }
+vec4 _div_(in vec4 x, in vec4 y) { return x/y; }
+
+mat2 _pos_(in mat2 x) { return +x; }
+mat2 _neg_(in mat2 x) { return -x; }
+mat2 _add_(in mat2 x, in float y) { return x+y; }
+mat2 _add_(in float x, in mat2 y) { return x+y; }
+mat2 _add_(in mat2 x, in mat2 y) { return x+y; }
+mat2 _sub_(in mat2 x, in float y) { return x-y; }
+mat2 _sub_(in float x, in mat2 y) { return x-y; }
+mat2 _sub_(in mat2 x, in mat2 y) { return x-y; }
+mat2 _mul_(in mat2 x, in float y) { return x*y; }
+mat2 _mul_(in float x, in mat2 y) { return x*y; }
+mat2 _mul_(in mat2 x, in mat2 y) { return x*y; }
+mat2 _div_(in mat2 x, in float y) { return x/y; }
+mat2 _div_(in float x, in mat2 y) { return x/y; }
+mat2 _div_(in mat2 x, in mat2 y) { return x/y; }
+
+mat3 _pos_(in mat3 x) { return +x; }
+mat3 _neg_(in mat3 x) { return -x; }
+mat3 _add_(in mat3 x, in float y) { return x+y; }
+mat3 _add_(in float x, in mat3 y) { return x+y; }
+mat3 _add_(in mat3 x, in mat3 y) { return x+y; }
+mat3 _sub_(in mat3 x, in float y) { return x-y; }
+mat3 _sub_(in float x, in mat3 y) { return x-y; }
+mat3 _sub_(in mat3 x, in mat3 y) { return x-y; }
+mat3 _mul_(in mat3 x, in float y) { return x*y; }
+mat3 _mul_(in float x, in mat3 y) { return x*y; }
+mat3 _mul_(in mat3 x, in mat3 y) { return x*y; }
+mat3 _div_(in mat3 x, in float y) { return x/y; }
+mat3 _div_(in float x, in mat3 y) { return x/y; }
+mat3 _div_(in mat3 x, in mat3 y) { return x/y; }
+
+mat4 _pos_(in mat4 x) { return +x; }
+mat4 _neg_(in mat4 x) { return -x; }
+mat4 _add_(in mat4 x, in float y) { return x+y; }
+mat4 _add_(in float x, in mat4 y) { return x+y; }
+mat4 _add_(in mat4 x, in mat4 y) { return x+y; }
+mat4 _sub_(in mat4 x, in float y) { return x-y; }
+mat4 _sub_(in float x, in mat4 y) { return x-y; }
+mat4 _sub_(in mat4 x, in mat4 y) { return x-y; }
+mat4 _mul_(in mat4 x, in float y) { return x*y; }
+mat4 _mul_(in float x, in mat4 y) { return x*y; }
+mat4 _mul_(in mat4 x, in mat4 y) { return x*y; }
+mat4 _div_(in mat4 x, in float y) { return x/y; }
+mat4 _div_(in float x, in mat4 y) { return x/y; }
+mat4 _div_(in mat4 x, in mat4 y) { return x/y; }
+
+float _exp_(in float x) { return exp(x); }
+float _log_(in float x) { return log(x); }
+float _cos_(in float x) { return cos(x); }
+float _sin_(in float x) { return sin(x); }
+float _tan_(in float x) { return tan(x); }
+float _acos_(in float x) { return acos(x); }
+float _asin_(in float x) { return asin(x); }
+float _atan_(in float x) { return atan(x); }
+float _cosh_(in float x) { return cosh(x); }
+float _sinh_(in float x) { return sinh(x); }
+float _tanh_(in float x) { return tanh(x); }
+float _acosh_(in float x) { return acosh(x); }
+float _asinh_(in float x) { return asinh(x); }
+float _atanh_(in float x) { return atanh(x); }
+float _sqrt_(in float x) { return sqrt(x); }
+float _ceil_(in float x) { return ceil(x); }
+float _floor_(in float x) { return floor(x); }
+float _atan_(in float x, in float y) { return atan(x, y); }
+float _pow_(in float x, in float y) { return pow(x, y); }
+float _min_(in float x, in float y) { return min(x, y); }
+float _max_(in float x, in float y) { return max(x, y); }
+
+#endif`,on=`#ifndef CAMERA_H_
 #define CAMERA_H_
 
 
@@ -134,230 +256,9 @@ mat4 lookAtInv(vec3 eye, vec3 center, vec3 up)
         );
 }
 
-
-
-#endif //CAMERA_H_`,oe=`float _pos_(in float x) { return +x; }
-float _neg_(in float x) { return -x; }
-float _add_(in float x, in float y) { return x+y; }
-float _sub_(in float x, in float y) { return x-y; }
-float _mul_(in float x, in float y) { return x*y; }
-float _div_(in float x, in float y) { return x/y; }
-
-vec2 _pos_(in vec2 x) { return +x; }
-vec2 _neg_(in vec2 x) { return -x; }
-vec2 _add_(in vec2 x, in float y) { return x+y; }
-vec2 _add_(in float x, in vec2 y) { return x+y; }
-vec2 _add_(in vec2 x, in vec2 y) { return x+y; }
-vec2 _sub_(in vec2 x, in float y) { return x-y; }
-vec2 _sub_(in float x, in vec2 y) { return x-y; }
-vec2 _sub_(in vec2 x, in vec2 y) { return x-y; }
-vec2 _mul_(in vec2 x, in float y) { return x*y; }
-vec2 _mul_(in float x, in vec2 y) { return x*y; }
-vec2 _mul_(in vec2 x, in vec2 y) { return x*y; }
-vec2 _div_(in vec2 x, in float y) { return x/y; }
-vec2 _div_(in float x, in vec2 y) { return x/y; }
-vec2 _div_(in vec2 x, in vec2 y) { return x/y; }
-
-vec3 _pos_(in vec3 x) { return +x; }
-vec3 _neg_(in vec3 x) { return -x; }
-vec3 _add_(in vec3 x, in float y) { return x+y; }
-vec3 _add_(in float x, in vec3 y) { return x+y; }
-vec3 _add_(in vec3 x, in vec3 y) { return x+y; }
-vec3 _sub_(in vec3 x, in float y) { return x-y; }
-vec3 _sub_(in float x, in vec3 y) { return x-y; }
-vec3 _sub_(in vec3 x, in vec3 y) { return x-y; }
-vec3 _mul_(in vec3 x, in float y) { return x*y; }
-vec3 _mul_(in float x, in vec3 y) { return x*y; }
-vec3 _mul_(in vec3 x, in vec3 y) { return x*y; }
-vec3 _div_(in vec3 x, in float y) { return x/y; }
-vec3 _div_(in float x, in vec3 y) { return x/y; }
-vec3 _div_(in vec3 x, in vec3 y) { return x/y; }
-
-vec4 _pos_(in vec4 x) { return +x; }
-vec4 _neg_(in vec4 x) { return -x; }
-vec4 _add_(in vec4 x, in float y) { return x+y; }
-vec4 _add_(in float x, in vec4 y) { return x+y; }
-vec4 _add_(in vec4 x, in vec4 y) { return x+y; }
-vec4 _sub_(in vec4 x, in float y) { return x-y; }
-vec4 _sub_(in float x, in vec4 y) { return x-y; }
-vec4 _sub_(in vec4 x, in vec4 y) { return x-y; }
-vec4 _mul_(in vec4 x, in float y) { return x*y; }
-vec4 _mul_(in float x, in vec4 y) { return x*y; }
-vec4 _mul_(in vec4 x, in vec4 y) { return x*y; }
-vec4 _div_(in vec4 x, in float y) { return x/y; }
-vec4 _div_(in float x, in vec4 y) { return x/y; }
-vec4 _div_(in vec4 x, in vec4 y) { return x/y; }
-
-mat2 _pos_(in mat2 x) { return +x; }
-mat2 _neg_(in mat2 x) { return -x; }
-mat2 _add_(in mat2 x, in float y) { return x+y; }
-mat2 _add_(in float x, in mat2 y) { return x+y; }
-mat2 _add_(in mat2 x, in mat2 y) { return x+y; }
-mat2 _sub_(in mat2 x, in float y) { return x-y; }
-mat2 _sub_(in float x, in mat2 y) { return x-y; }
-mat2 _sub_(in mat2 x, in mat2 y) { return x-y; }
-mat2 _mul_(in mat2 x, in float y) { return x*y; }
-mat2 _mul_(in float x, in mat2 y) { return x*y; }
-mat2 _mul_(in mat2 x, in mat2 y) { return x*y; }
-mat2 _div_(in mat2 x, in float y) { return x/y; }
-mat2 _div_(in float x, in mat2 y) { return x/y; }
-mat2 _div_(in mat2 x, in mat2 y) { return x/y; }
-
-mat3 _pos_(in mat3 x) { return +x; }
-mat3 _neg_(in mat3 x) { return -x; }
-mat3 _add_(in mat3 x, in float y) { return x+y; }
-mat3 _add_(in float x, in mat3 y) { return x+y; }
-mat3 _add_(in mat3 x, in mat3 y) { return x+y; }
-mat3 _sub_(in mat3 x, in float y) { return x-y; }
-mat3 _sub_(in float x, in mat3 y) { return x-y; }
-mat3 _sub_(in mat3 x, in mat3 y) { return x-y; }
-mat3 _mul_(in mat3 x, in float y) { return x*y; }
-mat3 _mul_(in float x, in mat3 y) { return x*y; }
-mat3 _mul_(in mat3 x, in mat3 y) { return x*y; }
-mat3 _div_(in mat3 x, in float y) { return x/y; }
-mat3 _div_(in float x, in mat3 y) { return x/y; }
-mat3 _div_(in mat3 x, in mat3 y) { return x/y; }
-
-mat4 _pos_(in mat4 x) { return +x; }
-mat4 _neg_(in mat4 x) { return -x; }
-mat4 _add_(in mat4 x, in float y) { return x+y; }
-mat4 _add_(in float x, in mat4 y) { return x+y; }
-mat4 _add_(in mat4 x, in mat4 y) { return x+y; }
-mat4 _sub_(in mat4 x, in float y) { return x-y; }
-mat4 _sub_(in float x, in mat4 y) { return x-y; }
-mat4 _sub_(in mat4 x, in mat4 y) { return x-y; }
-mat4 _mul_(in mat4 x, in float y) { return x*y; }
-mat4 _mul_(in float x, in mat4 y) { return x*y; }
-mat4 _mul_(in mat4 x, in mat4 y) { return x*y; }
-mat4 _div_(in mat4 x, in float y) { return x/y; }
-mat4 _div_(in float x, in mat4 y) { return x/y; }
-mat4 _div_(in mat4 x, in mat4 y) { return x/y; }
-
-vec1 _pos_(in vec1 x) { return vec1(_pos_(x[0*1])); }
-vec1 _neg_(in vec1 x) { return vec1(_neg_(x[0*1])); }
-vec1 _add_(in vec1 x, in float y) { return vec1(_add_(x[0*1], y)); }
-vec1 _add_(in float x, in vec1 y) { return vec1(_add_(x, y[0*1])); }
-vec1 _add_(in vec1 x, in vec1 y) { return vec1(_add_(x[0*1], y[0*1])); }
-vec1 _sub_(in vec1 x, in float y) { return vec1(_sub_(x[0*1], y)); }
-vec1 _sub_(in float x, in vec1 y) { return vec1(_sub_(x, y[0*1])); }
-vec1 _sub_(in vec1 x, in vec1 y) { return vec1(_sub_(x[0*1], y[0*1])); }
-vec1 _mul_(in vec1 x, in float y) { return vec1(_mul_(x[0*1], y)); }
-vec1 _mul_(in float x, in vec1 y) { return vec1(_mul_(x, y[0*1])); }
-vec1 _mul_(in vec1 x, in vec1 y) { return vec1(_mul_(x[0*1], y[0*1])); }
-vec1 _div_(in vec1 x, in float y) { return vec1(_div_(x[0*1], y)); }
-vec1 _div_(in float x, in vec1 y) { return vec1(_div_(x, y[0*1])); }
-vec1 _div_(in vec1 x, in vec1 y) { return vec1(_div_(x[0*1], y[0*1])); }
-`,ie=o=>({source:{vs:`#version 300 es
-in vec4 aPosition;
-in vec4 aColor;
-
-out vec4 vsColor;
-
-void main() {
-    gl_Position = aPosition.yzwx;
-    vsColor = aColor;
-}
-`,fs:`#version 300 es
-precision highp float;
-in vec4 vsColor;
-out vec4 fsColor;
-
-uniform mat4 uView;
-uniform mat4 uProjection;
-
-uniform vec4 iResolution;
-uniform float iTime;
-
-#ifndef MATRIX_OPS_H_
-#define MATRIX_OPS_H_
-
-// matrix operations
-mat4 translate(vec3 t)
-{
- 	return mat4(
-        vec4(1.,0.,0.,0.),
-        vec4(0.,1.,0.,0.),
-        vec4(0.,0.,1.,0.),
-        vec4(t,1.)
-        );
-}
-mat4 translateInv(vec3 t)
-{
- 	return translate(-t);   
-}
-
-mat4 scale(vec3 s)
-{
- 	return mat4(
-        vec4(s.x,0.,0.,0.),
-        vec4(0.,s.y,0.,0.),
-        vec4(0.,0.,s.z,0.),
-        vec4(0.,0.,0.,1.)
-        );
-}
-mat4 scaleInv(vec3 s)
-{
- 	return scale(1./s);   
-}
-
-mat4 rightToLeft()
-{
-    // 1 0 0  0
-    // 0 1 0  0
-    // 0 0 -1 0
-    // 0 0 0  1
- 	return scale(vec3(1.,1.,-1.));
-}
-
-mat4 rightToLeftInv()
-{
-    // same matrix
-    return rightToLeft();
-}
-
-mat3 rotx(float a) {
-  float ca = cos(a);
-  float sa = sin(a);
-
-  return mat3(1.0, 0.0, 0.0, 0.0, ca, sa, 0.0, -sa, ca);
-}
-
-mat3 roty(float a) {
-  float ca = cos(a);
-  float sa = sin(a);
-
-  return mat3(ca, 0.0, -sa, 0.0, 1.0, 0.0, sa, 0.0, ca);
-}
-	
-#endif // MATRIX_OPS_H_
-
-${re}
-
-#define vec1 float[1]
-#define mat1 float[1*1]
-
-mat1 outer(in vec1 x, in vec1 y);
-mat2 outer(in vec2 x, in vec2 y);
-mat3 outer(in vec3 x, in vec3 y);
-mat4 outer(in vec4 x, in vec4 y);
-
-mat1 outer(in vec1 x, in vec1 y) {
-  return mat1(x[0] * y[0]);
-}
-
-mat2 outer(in vec2 x, in vec2 y) {
-  return mat2(x * y[0], x * y[1]);
-}
-
-mat3 outer(in vec3 x, in vec3 y) {
-  return mat3(x * y[0], x * y[1], x * y[2]);
-}
-
-mat4 outer(in vec4 x, in vec4 y) {
-  return mat4(x * y[0], x * y[1], x * y[2],  x * y[3]);
-}
-
-${oe}
+#endif //CAMERA_H_
+`,_n=`#ifndef DUAL_H_
+#define DUAL_H_
 
 struct d1e1 {
   float s;
@@ -530,19 +431,138 @@ d2e3 _sin_(in d2e3 a)
 #define d2e3vec2 d2e3[2]
 #define d2e3vec3 d2e3[3]
 
+#endif // DUAL_H_
+`,ln=`#ifndef MATRIX_OPS_H_
+#define MATRIX_OPS_H_
 
-//*************** INSTRUCTIONS **********************
-//
-// Press and hold 'f' to use the usual first order approximation
-//
-// Press and hold 'p' to use an eigenvalue estimate instead of the frobenius
-// norm (not really a noticeable effect...)
-//
-// Change the value of 'SCENE' just below to switch to different implicits
-//
-// Move the camera by dragging the mouse with left button held down
-//
-//***************************************************
+#define vec1 float[1]
+#define mat1 float[1*1]
+
+vec1 _pos_(in vec1 x) { return vec1(_pos_(x[0*1])); }
+vec1 _neg_(in vec1 x) { return vec1(_neg_(x[0*1])); }
+vec1 _add_(in vec1 x, in float y) { return vec1(_add_(x[0*1], y)); }
+vec1 _add_(in float x, in vec1 y) { return vec1(_add_(x, y[0*1])); }
+vec1 _add_(in vec1 x, in vec1 y) { return vec1(_add_(x[0*1], y[0*1])); }
+vec1 _sub_(in vec1 x, in float y) { return vec1(_sub_(x[0*1], y)); }
+vec1 _sub_(in float x, in vec1 y) { return vec1(_sub_(x, y[0*1])); }
+vec1 _sub_(in vec1 x, in vec1 y) { return vec1(_sub_(x[0*1], y[0*1])); }
+vec1 _mul_(in vec1 x, in float y) { return vec1(_mul_(x[0*1], y)); }
+vec1 _mul_(in float x, in vec1 y) { return vec1(_mul_(x, y[0*1])); }
+vec1 _mul_(in vec1 x, in vec1 y) { return vec1(_mul_(x[0*1], y[0*1])); }
+vec1 _div_(in vec1 x, in float y) { return vec1(_div_(x[0*1], y)); }
+vec1 _div_(in float x, in vec1 y) { return vec1(_div_(x, y[0*1])); }
+vec1 _div_(in vec1 x, in vec1 y) { return vec1(_div_(x[0*1], y[0*1])); }
+
+mat1 outer(in vec1 x, in vec1 y);
+mat2 outer(in vec2 x, in vec2 y);
+mat3 outer(in vec3 x, in vec3 y);
+mat4 outer(in vec4 x, in vec4 y);
+
+mat1 outer(in vec1 x, in vec1 y) {
+  return mat1(x[0] * y[0]);
+}
+
+mat2 outer(in vec2 x, in vec2 y) {
+  return mat2(x * y[0], x * y[1]);
+}
+
+mat3 outer(in vec3 x, in vec3 y) {
+  return mat3(x * y[0], x * y[1], x * y[2]);
+}
+
+mat4 outer(in vec4 x, in vec4 y) {
+  return mat4(x * y[0], x * y[1], x * y[2],  x * y[3]);
+}
+
+mat4 translate(vec3 t)
+{
+ 	return mat4(
+        vec4(1.,0.,0.,0.),
+        vec4(0.,1.,0.,0.),
+        vec4(0.,0.,1.,0.),
+        vec4(t,1.)
+        );
+}
+mat4 translateInv(vec3 t)
+{
+ 	return translate(-t);   
+}
+
+mat4 scale(vec3 s)
+{
+ 	return mat4(
+        vec4(s.x,0.,0.,0.),
+        vec4(0.,s.y,0.,0.),
+        vec4(0.,0.,s.z,0.),
+        vec4(0.,0.,0.,1.)
+        );
+}
+mat4 scaleInv(vec3 s)
+{
+ 	return scale(1./s);   
+}
+
+mat4 rightToLeft()
+{
+    // 1 0 0  0
+    // 0 1 0  0
+    // 0 0 -1 0
+    // 0 0 0  1
+ 	return scale(vec3(1.,1.,-1.));
+}
+
+mat4 rightToLeftInv()
+{
+    // same matrix
+    return rightToLeft();
+}
+
+mat3 rotx(float a) {
+  float ca = cos(a);
+  float sa = sin(a);
+
+  return mat3(1.0, 0.0, 0.0, 0.0, ca, sa, 0.0, -sa, ca);
+}
+
+mat3 roty(float a) {
+  float ca = cos(a);
+  float sa = sin(a);
+
+  return mat3(ca, 0.0, -sa, 0.0, 1.0, 0.0, sa, 0.0, ca);
+}
+
+#endif // MATRIX_OPS_H_
+`,un=o=>({source:{vs:`#version 300 es
+in vec4 aPosition;
+in vec4 aColor;
+
+out vec4 vsColor;
+
+void main() {
+    gl_Position = aPosition.yzwx;
+    vsColor = aColor;
+}
+`,fs:`#version 300 es
+
+//precision highp float;
+precision mediump float;
+
+in vec4 vsColor;
+out vec4 fsColor;
+
+uniform mat4 uView;
+uniform mat4 uProjection;
+
+uniform vec4 iResolution;
+uniform float iTime;
+
+${rn}
+
+${ln}
+
+${on}
+
+${_n}
 
 #define SCENE 2
 #define MATERIAL 1
@@ -594,61 +614,6 @@ float calcNorm(in mat3 m) {
     return frobenius(m);
 }
 
-/*
-// Different implicit functions f(x,y,z)
-HNum3 implicit(in HNum3 x, in HNum3 y, in HNum3 z) {
-
-#if SCENE == 0
-  return sub(a_sqrt(add(add(mult(x, x), mult(y, y)), mult(z, z))), constH3(1.));
-#elif SCENE == 1
-  return sub(y, a_sin(add(x, y)));
-#elif SCENE == 1
-
-  return sub(add(mult(x, x), mult(z, z)),
-             mult(z, sub(constH3(1.), mult(y, y))));
-
-#elif SCENE == 2
-  return sub(add(add(a_ipow(x, 4), a_ipow(y, 4)), a_ipow(z, 4)), constH3(1.));
-#elif SCENE == 3
-
-  return sub(sub(a_ipow(sub(add(add(mult(2., mult(x, x)), mult(2., mult(z, z))),
-                                mult(y, y)),
-                            constH3(1.)),
-                        3),
-                 mult(0.1, mult(mult(x, x), a_ipow(y, 3)))),
-             mult(mult(z, z), a_ipow(y, 3)));
-#elif SCENE == 4
-  HNum3 c2 = constH3(2.);
-  HNum3 f1 = mult(a_ipow(sub(x, c2), 2), a_ipow(add(x, c2), 2));
-  HNum3 f2 = mult(a_ipow(sub(y, c2), 2), a_ipow(add(y, c2), 2));
-  HNum3 f3 = mult(a_ipow(sub(z, c2), 2), a_ipow(add(z, c2), 2));
-  HNum3 f4 = mult(
-      3., add(add(mult(mult(x, x), mult(y, y)), mult(mult(x, x), mult(z, z))),
-              mult(mult(y, y), mult(z, z))));
-
-  HNum3 f5 = mult(mult(mult(6., x), y), z);
-  HNum3 f6 = mult(-10., add(add(mult(x, x), mult(y, y)), mult(z, z)));
-
-  return add(add(add(add(add(add(f1, f2), f3), f4), f5), f6), constH3(22.));
-#elif SCENE == 5
-  return add(add(add(mult(mult(a_sin(x), a_sin(y)), a_sin(z)),
-                     mult(mult(a_sin(x), a_cos(y)), a_cos(z))),
-
-                 mult(mult(a_cos(x), a_sin(y)), a_cos(z))),
-
-             mult(mult(a_cos(x), a_cos(y)), a_sin(z)));
-#else
-  HNum3 noise = mult(0.4 * cos(iTime / 10.),
-                     mult(mult(a_cos(mult(22., y)), a_sin(mult(15., y))),
-                          a_sin(mult(14., z))));
-
-  noise = add(noise, mult(0.4 * sin(iTime / 5.), a_cos(mult(2., z))));
-  return add(noise, sub(a_sqrt(add(add(mult(x, x), mult(y, y)), mult(z, z))),
-                        constH3(1.)));
-#endif
-}
-*/
-
 vec3 LPos = vec3(2., 5., 2.);
 
 /*
@@ -681,6 +646,7 @@ d2e3 f(in d2e3vec3 x) {
 #endif
 }
 */
+
 ${o}
 
 float curvature(in d2e3 x) {
@@ -725,24 +691,6 @@ vec3 fColor(in vec3 P, in vec3 rd, in d2e3 x) {
   return col;
 #endif
 }
-
-/*
-void getEye(out vec3 eye, out vec3 center) {
-#if SCENE == 0
-  eye = vec3(3., 1., 0.);
-  center = vec3(0.);
-#elif SCENE == 1
-  eye = vec3(5., 1., 0.);
-  center = vec3(0.);
-#elif SCENE == 4
-  eye = vec3(7., 1., 0.);
-  center = vec3(0.);
-#else
-  eye = vec3(3., 1., 0.);
-  center = vec3(0.);
-#endif
-}
-*/
 
 float DE(vec3 p) {
   d2e3 result = f(d2e3vec3(
@@ -913,8 +861,8 @@ void main() {
     //fsColor = vsColor;
     mainImage(fsColor, gl_FragCoord.xy);
 }
-`},attributes:{aPosition:{type:"vec4",location:-1},aColor:{type:"vec4",location:-1}},uniforms:{uProjection:{type:"mat4",location:null},uView:{type:"mat4",location:null},iResolution:{type:"vec4",location:null},iTime:{type:"float",location:null}}}),_e={class:"flex flex-col"},ue=`@plot_implicit
+`},attributes:{aPosition:{type:"vec4",location:-1},aColor:{type:"vec4",location:-1}},uniforms:{uProjection:{type:"mat4",location:null},uView:{type:"mat4",location:null},iResolution:{type:"vec4",location:null},iTime:{type:"float",location:null}}}),sn={class:"flex flex-col"},dn=`@plot_implicit
 d2e3 f(in d2e3vec3 x) {
   return sin(x[0]) + cos(x[1]) + x[2];
 }
-`,le=P({__name:"WebGlImplicitSurfaceView",setup(o){const _={extensions:[G,O.define(F)]},l=h({source:ue}),d=L(l),u={options:{alpha:!0,premultipliedAlpha:!1},size:[1920,1080]};let a=null;const c={mode:0,count:6,attributes:{aPosition:{data:new Float32Array([1,1,1,0,1,-1,1,0,1,1,-1,0,1,-1,-1,0])},aColor:{data:new Float32Array([1,1,0,1,0,1,0,1,1,0,0,1,0,0,0,1])},aIndex:{data:new Int32Array([0,1,2,3,2,1])}}},n={value:null,valid:!1,onCreate({context:e}){if(console.log("Program::onCreate"),!!a&&(n.value=ae(e,[S(e,a.source.vs,e.VERTEX_SHADER),S(e,a.source.fs,e.FRAGMENT_SHADER)]),!!n.value)){for(let t of Object.keys(a.attributes))a.attributes[t].location=e.getAttribLocation(n.value,t);for(let t of Object.keys(a.uniforms))a.uniforms[t].location=e.getUniformLocation(n.value,t);n.valid=!0}},onUpdate(e){var t,s;n.valid||((t=n.onDelete)==null||t.call(n,e),(s=n.onCreate)==null||s.call(n,e))},onDelete({context:e}){console.log("Program::onDelete"),e.deleteProgram(n.value),n.value=null}},i={aPosition:{value:null,onCreate({context:e}){i.aPosition.value=e.createBuffer()},onUpdate({context:e}){i.aPosition.value&&(e.bindBuffer(e.ARRAY_BUFFER,i.aPosition.value),e.bufferData(e.ARRAY_BUFFER,c.attributes.aPosition.data,e.STATIC_DRAW))},onDelete({context:e}){e.deleteBuffer(i.aPosition.value),i.aPosition.value=null}},aColor:{value:null,onCreate({context:e}){i.aColor.value=e.createBuffer()},onUpdate({context:e}){i.aColor.value&&(e.bindBuffer(e.ARRAY_BUFFER,i.aColor.value),e.bufferData(e.ARRAY_BUFFER,c.attributes.aColor.data,e.STATIC_DRAW))},onDelete({context:e}){e.deleteBuffer(i.aColor.value),i.aColor.value=null}},aIndex:{value:null,onCreate({context:e}){i.aIndex.value=e.createBuffer()},onUpdate({context:e}){i.aIndex.value&&(e.bindBuffer(e.ELEMENT_ARRAY_BUFFER,i.aIndex.value),e.bufferData(e.ELEMENT_ARRAY_BUFFER,c.attributes.aIndex.data,e.STATIC_DRAW))},onDelete({context:e}){e.deleteBuffer(i.aIndex.value),i.aIndex.value=null}}},r={value:null,valid:!1,onCreate(e){var s,m,f,v,y,p,w;const{context:t}=e;r.value=t.createVertexArray(),(m=(s=i.aPosition).onCreate)==null||m.call(s,e),(v=(f=i.aColor).onCreate)==null||v.call(f,e),(p=(y=i.aIndex).onCreate)==null||p.call(y,e),(w=r.onUpdate)==null||w.call(r,e)},onUpdate(e){var s,m,f,v,y,p;if(!a||!r.value)return;const{context:t}=e;t.bindVertexArray(r.value),(m=(s=i.aPosition).onUpdate)==null||m.call(s,e),a.attributes.aPosition.location!=-1&&(t.enableVertexAttribArray(a.attributes.aPosition.location),t.vertexAttribPointer(a.attributes.aPosition.location,4,t.FLOAT,!1,0,0)),(v=(f=i.aColor).onUpdate)==null||v.call(f,e),a.attributes.aColor.location!=-1&&(t.enableVertexAttribArray(a.attributes.aColor.location),t.vertexAttribPointer(a.attributes.aColor.location,4,t.FLOAT,!1,0,0)),(p=(y=i.aIndex).onUpdate)==null||p.call(y,e),r.valid=!0},onDelete({context:e}){e.deleteVertexArray(r.value),r.value=null}},x=J.perspective(Math.PI/4,1920/1080,.1,1e3),{listeners:N,transform:T}=X([-8,0,0]),D={onCreate(e){var t,s;(t=n.onCreate)==null||t.call(n,e),(s=r.onCreate)==null||s.call(r,e)},onRender(e){var m,f,v;if(!a)return;(m=n.onUpdate)==null||m.call(n,e);const{context:t,timestamp:s}=e;t.clearColor(0,0,0,0),t.clear(t.COLOR_BUFFER_BIT),t.useProgram(n.value),t.uniformMatrix4fv(a.uniforms.uView.location,!1,T.value),t.uniformMatrix4fv(a.uniforms.uProjection.location,!1,x),t.uniform4fv(a.uniforms.iResolution.location,[((f=u.size)==null?void 0:f[0])??0,((v=u.size)==null?void 0:v[1])??0,0,0]),t.uniform1f(a.uniforms.iTime.location,s/1e3),t.bindVertexArray(r.value),t.drawElements(t.TRIANGLES,c.count,t.UNSIGNED_INT,0)},onDelete(e){var t;(t=n.onDelete)==null||t.call(n,e)}},U=e=>({source:e.replaceAll("@plot_implicit","/*@plot_implicit*/")}),z=e=>{const t=U(e.source);t.source=B(t.source,{quiet:!0}),a=ie(t.source),n.valid=!1},k=e=>{switch(e.key){case"Enter":return e.shiftKey;case"s":case"S":return e.ctrlKey||e.metaKey;default:return!1}};return R(document,"keydown",e=>{k(e)&&(e.stopPropagation(),e.preventDefault(),z(d))}),$(l,z,{immediate:!0}),(e,t)=>(C(),E(K,null,[b(M,{title:"Implicit Surface",modelValue:l.value,"onUpdate:modelValue":t[0]||(t[0]=s=>l.value=s)},null,8,["modelValue"]),b(V,null,{input:A(()=>[b(q,{class:"h-full",modelValue:g(d).source,"onUpdate:modelValue":t[1]||(t[1]=s=>g(d).source=s),options:_},null,8,["modelValue"])]),output:A(()=>[Y("div",_e,[b(ne,{renderer:D,listeners:g(N),options:u},null,8,["listeners"])])]),_:1})],64))}}),ve=Q(le,[["__scopeId","data-v-329f1625"]]);export{ve as default};
+`,xn=z({__name:"WebGlImplicitSurfaceView",setup(o){const i={extensions:[H,O.define(M)]},u=b({source:dn}),d=F(u),l={options:{alpha:!0,premultipliedAlpha:!1},size:[1920,1080]};let a=null;const x={mode:0,count:6,attributes:{aPosition:{data:new Float32Array([1,1,1,0,1,-1,1,0,1,1,-1,0,1,-1,-1,0])},aColor:{data:new Float32Array([1,1,0,1,0,1,0,1,1,0,0,1,0,0,0,1])},aIndex:{data:new Int32Array([0,1,2,3,2,1])}}},t={value:null,valid:!1,onCreate({context:n}){if(console.log("Program::onCreate"),!!a&&(t.value=an(n,[E(n,a.source.vs,n.VERTEX_SHADER),E(n,a.source.fs,n.FRAGMENT_SHADER)]),!!t.value)){for(let e of Object.keys(a.attributes))a.attributes[e].location=n.getAttribLocation(t.value,e);for(let e of Object.keys(a.uniforms))a.uniforms[e].location=n.getUniformLocation(t.value,e);t.valid=!0}},onUpdate(n){var e,s;t.valid||((e=t.onDelete)==null||e.call(t,n),(s=t.onCreate)==null||s.call(t,n))},onDelete({context:n}){console.log("Program::onDelete"),n.deleteProgram(t.value),t.value=null}},_={aPosition:{value:null,onCreate({context:n}){_.aPosition.value=n.createBuffer()},onUpdate({context:n}){_.aPosition.value&&(n.bindBuffer(n.ARRAY_BUFFER,_.aPosition.value),n.bufferData(n.ARRAY_BUFFER,x.attributes.aPosition.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(_.aPosition.value),_.aPosition.value=null}},aColor:{value:null,onCreate({context:n}){_.aColor.value=n.createBuffer()},onUpdate({context:n}){_.aColor.value&&(n.bindBuffer(n.ARRAY_BUFFER,_.aColor.value),n.bufferData(n.ARRAY_BUFFER,x.attributes.aColor.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(_.aColor.value),_.aColor.value=null}},aIndex:{value:null,onCreate({context:n}){_.aIndex.value=n.createBuffer()},onUpdate({context:n}){_.aIndex.value&&(n.bindBuffer(n.ELEMENT_ARRAY_BUFFER,_.aIndex.value),n.bufferData(n.ELEMENT_ARRAY_BUFFER,x.attributes.aIndex.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(_.aIndex.value),_.aIndex.value=null}}},r={value:null,valid:!1,onCreate(n){var s,f,m,v,y,p,R;const{context:e}=n;r.value=e.createVertexArray(),(f=(s=_.aPosition).onCreate)==null||f.call(s,n),(v=(m=_.aColor).onCreate)==null||v.call(m,n),(p=(y=_.aIndex).onCreate)==null||p.call(y,n),(R=r.onUpdate)==null||R.call(r,n)},onUpdate(n){var s,f,m,v,y,p;if(!a||!r.value)return;const{context:e}=n;e.bindVertexArray(r.value),(f=(s=_.aPosition).onUpdate)==null||f.call(s,n),a.attributes.aPosition.location!=-1&&(e.enableVertexAttribArray(a.attributes.aPosition.location),e.vertexAttribPointer(a.attributes.aPosition.location,4,e.FLOAT,!1,0,0)),(v=(m=_.aColor).onUpdate)==null||v.call(m,n),a.attributes.aColor.location!=-1&&(e.enableVertexAttribArray(a.attributes.aColor.location),e.vertexAttribPointer(a.attributes.aColor.location,4,e.FLOAT,!1,0,0)),(p=(y=_.aIndex).onUpdate)==null||p.call(y,n),r.valid=!0},onDelete({context:n}){n.deleteVertexArray(r.value),r.value=null}},c=J.perspective(Math.PI/4,1920/1080,.1,1e3),{listeners:T,transform:D}=X([-8,0,0]),U={onCreate(n){var e,s;(e=t.onCreate)==null||e.call(t,n),(s=r.onCreate)==null||s.call(r,n)},onRender(n){var f,m,v;if(!a)return;(f=t.onUpdate)==null||f.call(t,n);const{context:e,timestamp:s}=n;e.clearColor(0,0,0,0),e.clear(e.COLOR_BUFFER_BIT),e.useProgram(t.value),e.uniformMatrix4fv(a.uniforms.uView.location,!1,D.value),e.uniformMatrix4fv(a.uniforms.uProjection.location,!1,c),e.uniform4fv(a.uniforms.iResolution.location,[((m=l.size)==null?void 0:m[0])??0,((v=l.size)==null?void 0:v[1])??0,0,0]),e.uniform1f(a.uniforms.iTime.location,s/1e3),e.bindVertexArray(r.value),e.drawElements(e.TRIANGLES,x.count,e.UNSIGNED_INT,0)},onDelete(n){var e;(e=t.onDelete)==null||e.call(t,n)}},L=n=>({source:n.replaceAll("@plot_implicit","/*@plot_implicit*/")}),A=n=>{const e=L(n.source);e.source=G(e.source,{quiet:!0}),a=un(e.source),t.valid=!1},N=n=>{switch(n.key){case"Enter":return n.shiftKey;case"s":case"S":return n.ctrlKey||n.metaKey;default:return!1}};return S(document,"keydown",n=>{N(n)&&(n.stopPropagation(),n.preventDefault(),A(d))}),$(u,A,{immediate:!0}),(n,e)=>(C(),I(K,null,[h(B,{title:"Implicit Surface",modelValue:u.value,"onUpdate:modelValue":e[0]||(e[0]=s=>u.value=s)},null,8,["modelValue"]),h(V,null,{input:P(()=>[h(q,{class:"h-full",modelValue:g(d).source,"onUpdate:modelValue":e[1]||(e[1]=s=>g(d).source=s),options:i},null,8,["modelValue"])]),output:P(()=>[Y("div",sn,[h(tn,{renderer:U,listeners:g(T),options:l},null,8,["listeners"])])]),_:1})],64))}}),hn=Q(xn,[["__scopeId","data-v-329f1625"]]);export{hn as default};

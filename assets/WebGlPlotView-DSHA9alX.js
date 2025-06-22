@@ -1,4 +1,4 @@
-import{t as _,n as x}from"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-D9cqaGzh.js";import{s as S,_ as V,a as g,p as h,i as w}from"./utilities-DgGem3EU.js";import{f as v,S as y,_ as k}from"./index-CcPn7Ze1.js";import{d as E,r as n,q as $,e as B,g as r,k as c,F as C,b as U,u as i,f as b,t as D}from"./index-DOqBBth_.js";const F={class:"h-full text-xs overflow-scroll p-2"},K=`@plot_implicit
+import{t as _,n as x}from"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-CWzvUIeD.js";import{s as S,_ as V,a as g,p as h,i as w}from"./utilities-CkWpSzgo.js";import{f as v,S as y,_ as k}from"./index-CxPv0WyP.js";import{d as E,r as n,q as $,e as B,g as r,k as c,F as C,b as U,u as i,f as b,t as D}from"./index-BwXBi3eP.js";const F={class:"h-full text-xs overflow-scroll p-2"},K=`@plot_implicit
 d2e2 f(d2e2vec2 x) {
   return x[0]*x[0] + x[1]*x[1] + x[2]*x[2] - 1.;
 }
