@@ -1,4 +1,4 @@
-import{C as k,n as S,t as F}from"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-BiELzYaB.js";import{s as M,_ as B,a as V,p as q}from"./utilities-BjSpYvY9.js";import{f as G,S as H,_ as O}from"./index-CR3NzD-O.js";import{o as j,z as W,d as z,c as R,r as b,b as C,e as I,q as $,g as h,k as P,F as K,u as g,f as Y}from"./index-CB0EF2dQ.js";import{u as X}from"./useCamera-QnfjA7_D.js";import{m as J,_ as Q}from"./_plugin-vue_export-helper-DbqndbrS.js";function Z(_,o,u={},c={}){let l=null;const{pause:a,resume:s}=k(r=>{var d;l&&((d=o.onRender)==null||d.call(o,{...l,...r}))},{immediate:!1});for(const[r,d]of Object.entries(u))S(_,r,d);j(()=>{var r;t(),l&&((r=o.onCreate)==null||r.call(o,l),s())}),W(()=>{var r;l&&(a(),(r=o.onDelete)==null||r.call(o,l)),i()});const t=()=>{console.log("useWebGl::initialize");const r=_.value;if(!r){console.log("Invalid canvas.");return}const d=r.getContext("webgl2",c.options);if(!d){console.log("Invalid context.");return}l={context:d}},i=()=>{console.log("useWebGl::finalize"),l=null};return!0}const nn=["width","height"],en={key:1,class:"flex items-center justify-center"},tn=z({__name:"WebGlCanvas",props:{renderer:{},options:{default:()=>({size:[1920,1080]})},listeners:{default:()=>({})}},setup(_){const o=_,u=R(()=>{var s;return((s=o.options.size)==null?void 0:s[0])??1920}),c=R(()=>{var s;return((s=o.options.size)==null?void 0:s[1])??1080}),l=b(),a=b(!0);return a.value=Z(l,o.renderer,o.listeners,o.options),(s,t)=>a.value?(C(),I("canvas",{key:0,ref_key:"canvasRef",ref:l,class:"cursor-default",width:u.value,height:c.value,tabindex:"1"},null,8,nn)):(C(),I("div",en,"WebGPU not supported."))}}),E=(_,o,u)=>{const c=_.createShader(u);if(!c)return console.error("Error creating shader."),null;if(_.shaderSource(c,o),_.compileShader(c),!_.getShaderParameter(c,_.COMPILE_STATUS)){const a=_.getShaderInfoLog(c);return console.error(`Error compiling shader: ${a}`),_.deleteShader(c),null}return c},an=(_,o)=>{const u=_.createProgram();if(!u)return null;if(o.forEach(l=>{l&&_.attachShader(u,l)}),_.linkProgram(u),!_.getProgramParameter(u,_.LINK_STATUS)){const l=_.getProgramInfoLog(u);return console.error(`Error in program linking: ${l}`),_.deleteProgram(u),null}return u},rn=`#ifndef BUILTIN_H
+import{C as M,x as U,o as G,D as O,d as B,c as S,r as I,b as C,e as A,s as q,y as V,g as b,l as D,F as H,j as g,f as j}from"./index-BYXCs5vD.js";import{s as $,_ as W,a as K,p as Y}from"./utilities-CLo-pYjW.js";import{f as X,S as J,_ as Q}from"./index-CFWQ_RNC.js";import{u as Z}from"./useCamera-B-McauLZ.js";import{m as nn,_ as en}from"./_plugin-vue_export-helper-DTLQoeSk.js";import"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-BLN1pYrx.js";function tn(o,i,c={},x={}){let l=null;const{pause:r,resume:d}=M(_=>{var a;l&&((a=i.onRender)==null||a.call(i,{...l,..._}))},{immediate:!1});for(const[_,a]of Object.entries(c))U(o,_,a);G(()=>{var _;m(),l&&((_=i.onCreate)==null||_.call(i,l),d())}),O(()=>{var _;l&&(r(),(_=i.onDelete)==null||_.call(i,l)),t()});const m=()=>{console.log("useWebGl::initialize");const _=o.value;if(!_){console.log("Invalid canvas.");return}const a=_.getContext("webgl2",x.options);if(!a){console.log("Invalid context.");return}l={context:a}},t=()=>{console.log("useWebGl::finalize"),l=null};return!0}const an=["width","height"],rn={key:1,class:"flex items-center justify-center"},_n=B({__name:"WebGlCanvas",props:{renderer:{},options:{default:()=>({size:[1920,1080]})},listeners:{default:()=>({})}},setup(o){const i=o,c=S(()=>{var d;return((d=i.options.size)==null?void 0:d[0])??1920}),x=S(()=>{var d;return((d=i.options.size)==null?void 0:d[1])??1080}),l=I(),r=I(!0);return r.value=tn(l,i.renderer,i.listeners,i.options),(d,m)=>r.value?(C(),A("canvas",{key:0,ref_key:"canvasRef",ref:l,class:"cursor-default",width:c.value,height:x.value,tabindex:"1"},null,8,an)):(C(),A("div",rn,"WebGPU not supported."))}}),z=(o,i,c)=>{const x=o.createShader(c);if(!x)return console.error("Error creating shader."),null;if(o.shaderSource(x,i),o.compileShader(x),!o.getShaderParameter(x,o.COMPILE_STATUS)){const r=o.getShaderInfoLog(x);return console.error(`Error compiling shader: ${r}`),o.deleteShader(x),null}return x},on=(o,i)=>{const c=o.createProgram();if(!c)return null;if(i.forEach(l=>{l&&o.attachShader(c,l)}),o.linkProgram(c),!o.getProgramParameter(c,o.LINK_STATUS)){const l=o.getProgramInfoLog(c);return console.error(`Error in program linking: ${l}`),o.deleteProgram(c),null}return c},ln=`#ifndef BUILTIN_H
 #define BUILTIN_H
 
 float _pos_(in float x) { return +x; }
@@ -187,7 +187,7 @@ vec4 _min_(in vec4 x, in vec4 y) { return min(x, y); }
 vec4 _max_(in vec4 x, in vec4 y) { return max(x, y); }
 
 #endif
-`,_n=`#ifndef CAMERA_H_
+`,un=`#ifndef CAMERA_H_
 #define CAMERA_H_
 
 
@@ -324,7 +324,7 @@ mat4 lookAtInv(vec3 eye, vec3 center, vec3 up)
 }
 
 #endif //CAMERA_H_
-`,on=`#ifndef DUAL_H_
+`,cn=`#ifndef DUAL_H_
 #define DUAL_H_
 
 struct d1e1 {
@@ -499,7 +499,7 @@ d2e3 _sin_(in d2e3 a)
 #define d2e3vec3 d2e3[3]
 
 #endif // DUAL_H_
-`,ln=`#ifndef MATRIX_OPS_H_
+`,xn=`#ifndef MATRIX_OPS_H_
 #define MATRIX_OPS_H_
 
 #define vec1 float[1]
@@ -599,7 +599,7 @@ mat3 roty(float a) {
 }
 
 #endif // MATRIX_OPS_H_
-`,un=_=>({source:{vs:`#version 300 es
+`,sn=o=>({source:{vs:`#version 300 es
 in vec4 aPosition;
 in vec4 aColor;
 
@@ -617,19 +617,21 @@ precision mediump float;
 in vec4 vsColor;
 out vec4 fsColor;
 
-uniform mat4 uView;
-uniform mat4 uProjection;
-
-uniform vec4 iResolution;
-uniform float iTime;
-
-${rn}
+layout(std140) uniform Global {
+  mat4 projection;
+  mat4 view;
+  vec4 args;
+  vec2 resolution;
+  float time;
+} uGlobal;
 
 ${ln}
 
-${_n}
+${xn}
 
-${on}
+${un}
+
+${cn}
 
 #define SCENE 2
 #define MATERIAL 1
@@ -714,7 +716,7 @@ d2e3 f(in d2e3vec3 x) {
 }
 */
 
-${_}
+${o}
 
 float curvature(in d2e3 x) {
   mat4 G = mat4(x.h);
@@ -867,9 +869,9 @@ bool trace(in vec3 ro, in vec3 rd, out float t, out vec3 pos, out int steps) {
 //*/
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-  vec2 uv = fragCoord.xy / iResolution.xy;
+  vec2 uv = fragCoord.xy / uGlobal.resolution.xy;
 
-  float aspect = iResolution.x / iResolution.y;
+  float aspect = uGlobal.resolution.x / uGlobal.resolution.y;
   
   mat4 M = mat4(
     0,0,0,1,
@@ -884,14 +886,15 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     1,0,0,0
   );
 
-  vec3 eye = (inverse(uView)*vec4(1.0, 0.0, 0.0, 0.0)).yzw;
-  
+  //vec3 eye = (inverse(uGlobal.view)*vec4(1.0, 0.0, 0.0, 0.0)).yzw;
+
   mat4 PInv = perspectiveInv(radians(90.0), aspect, 0.1, 100.0);
-  mat4 VInv = M*inverse(uView)*MInv;
-  
+  mat4 VInv = M*inverse(uGlobal.view)*MInv;
+
+  vec3 eye = (VInv*vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   vec3 rayDir = createRay(uv, PInv, VInv);
 
-  LPos += vec3(0., sin(2. * pi / 10. * iTime), 0.) * 1.5;
+  LPos += vec3(0., sin(2. * pi / 10. * uGlobal.time), 0.) * 1.5;
   
   vec3 col;
   float t;
@@ -928,8 +931,8 @@ void main() {
     //fsColor = vsColor;
     mainImage(fsColor, gl_FragCoord.xy);
 }
-`},attributes:{aPosition:{type:"vec4",location:-1},aColor:{type:"vec4",location:-1}},uniforms:{uProjection:{type:"mat4",location:null},uView:{type:"mat4",location:null},iResolution:{type:"vec4",location:null},iTime:{type:"float",location:null}}}),xn={class:"flex flex-col"},cn=`@plot_implicit
+`},attributes:{aPosition:{type:"vec4",location:-1},aColor:{type:"vec4",location:-1}},uniforms:{},uniformBlocks:{Global:{location:-1}}}),dn={class:"flex flex-col"},vn=`@plot_implicit
 d2e3 f(in d2e3vec3 x) {
   return sin(x[0]) + cos(x[1]) + x[2];
 }
-`,sn=z({__name:"WebGlImplicitSurfaceView",setup(_){const o={extensions:[G,H.define(M)]},u=b({source:cn}),c=F(u),l={options:{alpha:!0,premultipliedAlpha:!1},size:[1920,1080]};let a=null;const s={mode:0,count:6,attributes:{aPosition:{data:new Float32Array([1,1,1,0,1,-1,1,0,1,1,-1,0,1,-1,-1,0])},aColor:{data:new Float32Array([1,1,0,1,0,1,0,1,1,0,0,1,0,0,0,1])},aIndex:{data:new Int32Array([0,1,2,3,2,1])}}},t={value:null,valid:!1,onCreate({context:n}){if(console.log("Program::onCreate"),!!a&&(t.value=an(n,[E(n,a.source.vs,n.VERTEX_SHADER),E(n,a.source.fs,n.FRAGMENT_SHADER)]),t.valid=!0,!!t.value)){for(let e of Object.keys(a.attributes))a.attributes[e].location=n.getAttribLocation(t.value,e);for(let e of Object.keys(a.uniforms))a.uniforms[e].location=n.getUniformLocation(t.value,e);t.valid=!0}},onUpdate(n){var e,x;t.valid||((e=t.onDelete)==null||e.call(t,n),(x=t.onCreate)==null||x.call(t,n))},onDelete({context:n}){console.log("Program::onDelete"),n.deleteProgram(t.value),t.value=null}},i={aPosition:{value:null,onCreate({context:n}){i.aPosition.value=n.createBuffer()},onUpdate({context:n}){i.aPosition.value&&(n.bindBuffer(n.ARRAY_BUFFER,i.aPosition.value),n.bufferData(n.ARRAY_BUFFER,s.attributes.aPosition.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(i.aPosition.value),i.aPosition.value=null}},aColor:{value:null,onCreate({context:n}){i.aColor.value=n.createBuffer()},onUpdate({context:n}){i.aColor.value&&(n.bindBuffer(n.ARRAY_BUFFER,i.aColor.value),n.bufferData(n.ARRAY_BUFFER,s.attributes.aColor.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(i.aColor.value),i.aColor.value=null}},aIndex:{value:null,onCreate({context:n}){i.aIndex.value=n.createBuffer()},onUpdate({context:n}){i.aIndex.value&&(n.bindBuffer(n.ELEMENT_ARRAY_BUFFER,i.aIndex.value),n.bufferData(n.ELEMENT_ARRAY_BUFFER,s.attributes.aIndex.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(i.aIndex.value),i.aIndex.value=null}}},r={value:null,valid:!1,onCreate(n){var x,v,f,m,y,p,w;const{context:e}=n;r.value=e.createVertexArray(),(v=(x=i.aPosition).onCreate)==null||v.call(x,n),(m=(f=i.aColor).onCreate)==null||m.call(f,n),(p=(y=i.aIndex).onCreate)==null||p.call(y,n),(w=r.onUpdate)==null||w.call(r,n)},onUpdate(n){var x,v,f,m,y,p;if(!a||!r.value)return;const{context:e}=n;e.bindVertexArray(r.value),(v=(x=i.aPosition).onUpdate)==null||v.call(x,n),a.attributes.aPosition.location!=-1&&(e.enableVertexAttribArray(a.attributes.aPosition.location),e.vertexAttribPointer(a.attributes.aPosition.location,4,e.FLOAT,!1,0,0)),(m=(f=i.aColor).onUpdate)==null||m.call(f,n),a.attributes.aColor.location!=-1&&(e.enableVertexAttribArray(a.attributes.aColor.location),e.vertexAttribPointer(a.attributes.aColor.location,4,e.FLOAT,!1,0,0)),(p=(y=i.aIndex).onUpdate)==null||p.call(y,n),r.valid=!0},onDelete({context:n}){n.deleteVertexArray(r.value),r.value=null}},d=J.perspective(Math.PI/4,1920/1080,.1,1e3),{listeners:T,transform:D}=X([-8,0,0]),U={onCreate(n){var e,x;(e=t.onCreate)==null||e.call(t,n),(x=r.onCreate)==null||x.call(r,n)},onRender(n){var v,f,m;if(!a||((v=t.onUpdate)==null||v.call(t,n),!t.value))return;const{context:e,timestamp:x}=n;e.clearColor(0,0,0,0),e.clear(e.COLOR_BUFFER_BIT),e.useProgram(t.value),e.uniformMatrix4fv(a.uniforms.uView.location,!1,D.value),e.uniformMatrix4fv(a.uniforms.uProjection.location,!1,d),e.uniform4fv(a.uniforms.iResolution.location,[((f=l.size)==null?void 0:f[0])??0,((m=l.size)==null?void 0:m[1])??0,0,0]),e.uniform1f(a.uniforms.iTime.location,x/1e3),e.bindVertexArray(r.value),e.drawElements(e.TRIANGLES,s.count,e.UNSIGNED_INT,0)},onDelete(n){var e;(e=t.onDelete)==null||e.call(t,n)}},L=n=>({source:n.replaceAll("@plot_implicit","/*@plot_implicit*/")}),A=n=>{const e=L(n.source);e.source=q(e.source,{quiet:!0}),a=un(e.source),console.log(a.source.fs),t.valid=!1},N=n=>{switch(n.key){case"Enter":return n.shiftKey;case"s":case"S":return n.ctrlKey||n.metaKey;default:return!1}};return S(document,"keydown",n=>{N(n)&&(n.stopPropagation(),n.preventDefault(),A(c))}),$(u,A,{immediate:!0}),(n,e)=>(C(),I(K,null,[h(B,{title:"Implicit Surface",modelValue:u.value,"onUpdate:modelValue":e[0]||(e[0]=x=>u.value=x)},null,8,["modelValue"]),h(V,null,{input:P(()=>[h(O,{class:"h-full",modelValue:g(c).source,"onUpdate:modelValue":e[1]||(e[1]=x=>g(c).source=x),options:o},null,8,["modelValue"])]),output:P(()=>[Y("div",xn,[h(tn,{renderer:U,listeners:g(T),options:l},null,8,["listeners"])])]),_:1})],64))}}),hn=Q(sn,[["__scopeId","data-v-43e8bc2f"]]);export{hn as default};
+`,fn=B({__name:"ImplicitSurfaceView",setup(o){var w,E;const i={extensions:[X,J.define($)]},c=I({source:vn}),x=q(c),l={options:{alpha:!0,premultipliedAlpha:!1},size:[1920,1080]};let r=null;const d={data:new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,((w=l.size)==null?void 0:w[0])??0,((E=l.size)==null?void 0:E[1])??0,0,0])},m={mode:0,count:6,attributes:{aPosition:{data:new Float32Array([1,1,1,0,1,-1,1,0,1,1,-1,0,1,-1,-1,0])},aColor:{data:new Float32Array([1,1,0,1,0,1,0,1,1,0,0,1,0,0,0,1])},aIndex:{data:new Int32Array([0,1,2,3,2,1])}}},t={value:null,valid:!1,onCreate({context:n}){if(console.log("Program::onCreate"),!!r&&(t.value=on(n,[z(n,r.source.vs,n.VERTEX_SHADER),z(n,r.source.fs,n.FRAGMENT_SHADER)]),t.valid=!0,!!t.value)){for(let e of Object.keys(r.attributes))r.attributes[e].location=n.getAttribLocation(t.value,e);for(let e of Object.keys(r.uniforms))r.uniforms[e].location=n.getUniformLocation(t.value,e);for(let e of Object.keys(r.uniformBlocks))r.uniformBlocks[e].location=n.getUniformBlockIndex(t.value,e);t.valid=!0}},onUpdate(n){var e,u;t.valid||((e=t.onDelete)==null||e.call(t,n),(u=t.onCreate)==null||u.call(t,n))},onDelete({context:n}){console.log("Program::onDelete"),n.deleteProgram(t.value),t.value=null}},_={value:null,onCreate({context:n}){_.value=n.createBuffer()},onUpdate({context:n}){if(!r||!_.value)return;n.bindBuffer(n.UNIFORM_BUFFER,_.value),n.bufferData(n.UNIFORM_BUFFER,d.data,n.DYNAMIC_DRAW),n.bindBuffer(n.UNIFORM_BUFFER,null);const e=0;n.bindBufferBase(n.UNIFORM_BUFFER,e,_.value),t.value&&r.uniformBlocks.Global.location!=-1&&n.uniformBlockBinding(t.value,r.uniformBlocks.Global.location,e)},onDelete({context:n}){n.deleteBuffer(_.value),_.value=null}},a={aPosition:{value:null,onCreate({context:n}){a.aPosition.value=n.createBuffer()},onUpdate({context:n}){a.aPosition.value&&(n.bindBuffer(n.ARRAY_BUFFER,a.aPosition.value),n.bufferData(n.ARRAY_BUFFER,m.attributes.aPosition.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(a.aPosition.value),a.aPosition.value=null}},aColor:{value:null,onCreate({context:n}){a.aColor.value=n.createBuffer()},onUpdate({context:n}){a.aColor.value&&(n.bindBuffer(n.ARRAY_BUFFER,a.aColor.value),n.bufferData(n.ARRAY_BUFFER,m.attributes.aColor.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(a.aColor.value),a.aColor.value=null}},aIndex:{value:null,onCreate({context:n}){a.aIndex.value=n.createBuffer()},onUpdate({context:n}){a.aIndex.value&&(n.bindBuffer(n.ELEMENT_ARRAY_BUFFER,a.aIndex.value),n.bufferData(n.ELEMENT_ARRAY_BUFFER,m.attributes.aIndex.data,n.STATIC_DRAW))},onDelete({context:n}){n.deleteBuffer(a.aIndex.value),a.aIndex.value=null}}},s={value:null,valid:!1,onCreate(n){var u,v,f,y,p,h,P;const{context:e}=n;s.value=e.createVertexArray(),(v=(u=a.aPosition).onCreate)==null||v.call(u,n),(y=(f=a.aColor).onCreate)==null||y.call(f,n),(h=(p=a.aIndex).onCreate)==null||h.call(p,n),(P=s.onUpdate)==null||P.call(s,n)},onUpdate(n){var u,v,f,y,p,h;if(!r||!s.value)return;const{context:e}=n;e.bindVertexArray(s.value),(v=(u=a.aPosition).onUpdate)==null||v.call(u,n),r.attributes.aPosition.location!=-1&&(e.enableVertexAttribArray(r.attributes.aPosition.location),e.vertexAttribPointer(r.attributes.aPosition.location,4,e.FLOAT,!1,0,0)),(y=(f=a.aColor).onUpdate)==null||y.call(f,n),r.attributes.aColor.location!=-1&&(e.enableVertexAttribArray(r.attributes.aColor.location),e.vertexAttribPointer(r.attributes.aColor.location,4,e.FLOAT,!1,0,0)),(h=(p=a.aIndex).onUpdate)==null||h.call(p,n),s.valid=!0},onDelete({context:n}){n.deleteVertexArray(s.value),s.value=null}};nn.perspective(Math.PI/4,1920/1080,.1,1e3);const{listeners:T,transformInplace:F}=Z([-8,0,0]),N={onCreate(n){var e,u,v;console.log("Renderer::onCreate"),(e=t.onCreate)==null||e.call(t,n),(u=_.onCreate)==null||u.call(_,n),(v=s.onCreate)==null||v.call(s,n)},onRender(n){var v,f;if(!r)return;const{context:e,timestamp:u}=n;(v=t.onUpdate)==null||v.call(t,n),t.value&&(F(d.data.subarray(16,32)),d.data[38]=u/1e3,(f=_.onUpdate)==null||f.call(_,n),_.value&&(e.clearColor(0,0,0,0),e.clear(e.COLOR_BUFFER_BIT),e.useProgram(t.value),e.bindVertexArray(s.value),e.drawElements(e.TRIANGLES,m.count,e.UNSIGNED_INT,0)))},onDelete(n){var e,u;console.log("Renderer::onDelete"),(e=s.onDelete)==null||e.call(s,n),(u=t.onDelete)==null||u.call(t,n)}},k=n=>({source:n.replaceAll("@plot_implicit","/*@plot_implicit*/")}),R=n=>{const e=k(n.source);e.source=Y(e.source,{quiet:!0}),r=sn(e.source),t.valid=!1},L=n=>{switch(n.key){case"Enter":return n.shiftKey;case"s":case"S":return n.ctrlKey||n.metaKey;default:return!1}};return U(document,"keydown",n=>{L(n)&&(n.stopPropagation(),n.preventDefault(),R(x))}),V(c,R,{immediate:!0}),(n,e)=>(C(),A(H,null,[b(W,{title:"Implicit Surface",modelValue:c.value,"onUpdate:modelValue":e[0]||(e[0]=u=>c.value=u)},null,8,["modelValue"]),b(K,null,{input:D(()=>[b(Q,{class:"h-full",modelValue:g(x).source,"onUpdate:modelValue":e[1]||(e[1]=u=>g(x).source=u),options:i},null,8,["modelValue"])]),output:D(()=>[j("div",dn,[b(_n,{renderer:N,listeners:g(T),options:l},null,8,["listeners"])])]),_:1})],64))}}),In=en(fn,[["__scopeId","data-v-8554d576"]]);export{In as default};
