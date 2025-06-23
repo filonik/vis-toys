@@ -72,7 +72,7 @@ export default function useCamera(position?: Array<number>, origin?: Array<numbe
         )
 
         if (lastHypo !== undefined) {        
-          const scale = hypo/lastHypo
+          const scale = lastHypo/hypo
           state.position[0] = clampDistance(state.position[0] * scale)
         }
 
