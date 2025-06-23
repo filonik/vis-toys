@@ -1,4 +1,4 @@
-import{d as _,r as c,s as x,x as S,y as V,e as g,g as r,l as n,F as h,b as w,j as i,f as y,t as v}from"./index-BYXCs5vD.js";import{s as E,_ as $,a as k,p as B,i as C}from"./utilities-CLo-pYjW.js";import{f as U,S as b,_ as D}from"./index-CFWQ_RNC.js";import"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-BLN1pYrx.js";const F={class:"h-full text-xs overflow-scroll p-2"},K=`@plot_implicit
+import{d as _,r as c,s as x,x as S,y as V,e as g,g as r,l as n,F as h,b as w,j as i,f as y,t as v}from"./index-CgPJedCE.js";import{s as E,_ as $,a as k,p as B,i as C}from"./utilities-D609ABx5.js";import{f as U,S as b,_ as D}from"./index-_kIe-FH2.js";import"./ToggleDarkButton.vue_vue_type_script_setup_true_lang-BgZrDap7.js";const F={class:"h-full text-xs overflow-scroll p-2"},K=`@plot_implicit
 d2e2 f(d2e2vec2 x) {
   return x[0]*x[0] + x[1]*x[1] + x[2]*x[2] - 1.;
 }
