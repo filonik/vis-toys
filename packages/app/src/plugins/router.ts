@@ -13,12 +13,12 @@ const router = createRouter({
     {
       path: '/parametric-surface/',
       name: 'parametric-surface',
-      component: () => import('../views/ParametricSurfaceView.vue')
+      component: () => import('../views/webgpu/ParametricSurfaceView.vue')
     },
     {
       path: '/implicit-surface/',
       name: 'implicit-surface',
-      component: () => import('../views/WebGlImplicitSurfaceView.vue')
+      component: () => import('../views/webgl/ImplicitSurfaceView.vue')
     },
     {
       path: '/simplicial-mesh/',

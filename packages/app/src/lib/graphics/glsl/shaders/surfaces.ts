@@ -7,6 +7,7 @@ export type ShaderInfo = {
     source: {vs:string, fs:string},
     attributes: Record<string, {type:string, location: number}>
     uniforms: Record<string, {type:string, location: WebGLUniformLocation|null}>
+    uniformBlocks: Record<string, {location: number}>
 }
 
 export const passthroughShader: () => ShaderInfo  = () => ({
@@ -53,12 +54,13 @@ void main() {
             type: "mat4",
             location: null,
         }
-    }
+    },
+    uniformBlocks: {}
 })
 
 export const raymarchImplicitShader: (func: string) => ShaderInfo  = (func) => ({
     source: {
-        vs: `#version 300 es
+        vs: /*glsl*/ `#version 300 es
 in vec4 aPosition;
 in vec4 aColor;
 
@@ -69,7 +71,7 @@ void main() {
     vsColor = aColor;
 }
 `,
-        fs: `#version 300 es
+        fs: /*glsl*/ `#version 300 es
 
 //precision highp float;
 precision mediump float;
@@ -77,11 +79,13 @@ precision mediump float;
 in vec4 vsColor;
 out vec4 fsColor;
 
-uniform mat4 uView;
-uniform mat4 uProjection;
-
-uniform vec4 iResolution;
-uniform float iTime;
+layout(std140) uniform Global {
+  mat4 projection;
+  mat4 view;
+  vec4 args;
+  vec2 resolution;
+  float time;
+} uGlobal;
 
 ${BUILTIN_H}
 
@@ -327,9 +331,9 @@ bool trace(in vec3 ro, in vec3 rd, out float t, out vec3 pos, out int steps) {
 //*/
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-  vec2 uv = fragCoord.xy / iResolution.xy;
+  vec2 uv = fragCoord.xy / uGlobal.resolution.xy;
 
-  float aspect = iResolution.x / iResolution.y;
+  float aspect = uGlobal.resolution.x / uGlobal.resolution.y;
   
   mat4 M = mat4(
     0,0,0,1,
@@ -344,14 +348,15 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     1,0,0,0
   );
 
-  vec3 eye = (inverse(uView)*vec4(1.0, 0.0, 0.0, 0.0)).yzw;
-  
+  //vec3 eye = (inverse(uGlobal.view)*vec4(1.0, 0.0, 0.0, 0.0)).yzw;
+
   mat4 PInv = perspectiveInv(radians(90.0), aspect, 0.1, 100.0);
-  mat4 VInv = M*inverse(uView)*MInv;
-  
+  mat4 VInv = M*inverse(uGlobal.view)*MInv;
+
+  vec3 eye = (VInv*vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   vec3 rayDir = createRay(uv, PInv, VInv);
 
-  LPos += vec3(0., sin(2. * pi / 10. * iTime), 0.) * 1.5;
+  LPos += vec3(0., sin(2. * pi / 10. * uGlobal.time), 0.) * 1.5;
   
   vec3 col;
   float t;
@@ -400,6 +405,7 @@ void main() {
             location: -1,
         }
     },
+    /*
     uniforms: {
         uProjection: {
             type: "mat4",
@@ -418,4 +424,9 @@ void main() {
             location: null,
         }
     }
+    */
+   uniforms: {},
+   uniformBlocks: {
+    Global: { location: -1 },
+   },
 })

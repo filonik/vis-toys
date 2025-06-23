@@ -141,6 +141,27 @@ void main() {
 
 let shaderInfo: ShaderInfo | null = null
 
+const uniformData = {
+    data: new Float32Array([
+        // projection
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,0,1,
+        // view
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,0,1,
+        // args
+        0,0,0,0,
+        // resolution
+        options.size?.[0] ?? 0, options.size?.[1] ?? 0,
+        // time
+        0, 0
+    ])
+}
+
 const meshData = {
     mode: 0,
     count: 6,
@@ -194,7 +215,11 @@ const program: WebGlStatefulResource<WebGLProgram> & {valid: boolean} = {
         for (let key of Object.keys(shaderInfo.uniforms)) {
             shaderInfo.uniforms[key].location = gl.getUniformLocation(program.value, key)
         }
-        
+
+        for (let key of Object.keys(shaderInfo.uniformBlocks)) {
+            shaderInfo.uniformBlocks[key].location = gl.getUniformBlockIndex(program.value, key)
+        }
+
         program.valid = true
     },
     onUpdate(args) {
@@ -209,6 +234,39 @@ const program: WebGlStatefulResource<WebGLProgram> & {valid: boolean} = {
         program.value = null
     }
 }
+
+const uniforms: WebGlStatefulResource<WebGLBuffer> = {
+    value: null,
+    onCreate({context: gl}) {
+        uniforms.value = gl.createBuffer()
+    },
+    onUpdate({context: gl}) {
+        if (!shaderInfo) return
+
+        if(!uniforms.value) return
+
+        gl.bindBuffer(gl.UNIFORM_BUFFER, uniforms.value)
+        gl.bufferData(gl.UNIFORM_BUFFER, uniformData.data, gl.DYNAMIC_DRAW)
+        gl.bindBuffer(gl.UNIFORM_BUFFER, null)
+
+        const boundLocation = 0
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, boundLocation, uniforms.value)
+
+        if (!program.value) return
+
+        if (shaderInfo.uniformBlocks.Global.location != -1) {
+            gl.uniformBlockBinding(program.value, shaderInfo.uniformBlocks.Global.location, boundLocation);
+        }
+    },
+    onDelete({context: gl}) {
+        gl.deleteBuffer(uniforms.value)
+        uniforms.value = null
+    }
+}
+
+//gl.uniformBlockBinding(program,, perScene.boundLocation);
+//gl.uniformBlockBinding(program, gl.getUniformBlockIndex(program, "perModel"), perModel.boundLocation);
+
 
 const buffers: {
     aPosition: WebGlStatefulResource<WebGLBuffer>,
@@ -314,37 +372,49 @@ const mesh: WebGlStatefulResource<WebGLVertexArrayObject> & {valid: boolean} = {
 
 const projection = mat4f.perspective(Math.PI/4, 1920/1080, 0.1, 1000.0)
 
-const { listeners, transform } = useCamera([-8, 0, 0])
+const { listeners, transformInplace } = useCamera([-8, 0, 0])
 
 const renderer: WebGlResource = {
     onCreate(args) {
+        console.log("Renderer::onCreate")
+
         program.onCreate?.(args)
+        
+        uniforms.onCreate?.(args)
+
         mesh.onCreate?.(args)
     },
     onRender(args) {
         if (!shaderInfo) return
 
+        const { context: gl, timestamp } = args
+
         program.onUpdate?.(args)
 
         if (!program.value) return
 
-        const { context: gl, timestamp } = args
+        transformInplace(uniformData.data.subarray(16,32))
 
+        uniformData.data[38] = timestamp/1000.0
+
+        uniforms.onUpdate?.(args)
+
+        if (!uniforms.value) return
+        
         gl.clearColor(0,0,0,0)
         gl.clear(gl.COLOR_BUFFER_BIT)
 
         gl.useProgram(program.value)
-
-        gl.uniformMatrix4fv(shaderInfo.uniforms.uView.location, false, transform.value)
-        gl.uniformMatrix4fv(shaderInfo.uniforms.uProjection.location, false, projection)
-        gl.uniform4fv(shaderInfo.uniforms.iResolution.location, [options.size?.[0] ?? 0, options.size?.[1] ?? 0, 0, 0])
-        gl.uniform1f(shaderInfo.uniforms.iTime.location, timestamp/1000.0)
 
         gl.bindVertexArray(mesh.value)
 
         gl.drawElements(gl.TRIANGLES, meshData.count, gl.UNSIGNED_INT, 0)
     },
     onDelete(args) {
+        console.log("Renderer::onDelete")
+
+        mesh.onDelete?.(args)
+
         program.onDelete?.(args)
     }
 }
@@ -371,8 +441,6 @@ const save = (state: State) => {
     })
 
     shaderInfo = raymarchImplicitShader(result.source)
-
-    console.log(shaderInfo.source.fs)
 
     program.valid = false
 }

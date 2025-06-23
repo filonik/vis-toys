@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import type { Ref } from 'vue'
+
+import { useDark } from '@vueuse/core'
+
+const isDark: Ref<boolean> = useDark()
+
 const parametricSurfaces = [
     {
         title: "Wave",
@@ -22,7 +28,7 @@ const implicitSurfaces = [
     },
     {
         title: "Wave (Animated)",
-        path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIHJldHVybiBzaW4oeFswXStjb3MoaVRpbWUpKSArIGNvcyh4WzFdK3NpbihpVGltZSkpICsgeFsyXTtcbn0nfQ'
+        path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIHJldHVybiBzaW4oeFswXStjb3ModUdsb2JhbC50aW1lKSkgKyBjb3MoeFsxXStzaW4odUdsb2JhbC50aW1lKSkgKyB4WzJdO1xufSd9'
     },
     {
         title: "Torus",
