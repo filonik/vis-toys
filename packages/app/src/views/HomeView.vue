@@ -40,7 +40,7 @@ const implicitSurfaces = [
     },
     {
         title: "Tooth",
-        path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIGQyZTN2ZWMzIHh4ID0gZDJlM3ZlYzMoXG4gICAgeFswXSp4WzBdLFxuICAgIHhbMV0qeFsxXSxcbiAgICB4WzJdKnhbMl1cbiAgKTtcbiAgcmV0dXJuIHh4WzBdKnh4WzBdICsgeHhbMV0qeHhbMV0gKyB4eFsyXSp4eFsyXSAtICh4eFswXSt4eFsxXSt4eFsyXSk7XG59J30'
+        path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIGQyZTN2ZWMzIHh4ID0geCp4O1xuICByZXR1cm4geHhbMF0qeHhbMF0gKyB4eFsxXSp4eFsxXSArIHh4WzJdKnh4WzJdIC0gKHh4WzBdK3h4WzFdK3h4WzJdKTtcbn0nfQ'
     },
     {
         title: "Ding-Dong",

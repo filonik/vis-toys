@@ -31,9 +31,9 @@ const router = createRouter({
       component: () => import('../views/InstancedSimplicialMeshView.vue')
     },
     {
-      path: '/glsl-transform/',
-      name: 'glsl-transform',
-      component: () => import('../views/WebGlPlotView.vue')
+      path: '/shader-transform/',
+      name: 'shader-transform',
+      component: () => import('../views/webgl/ShaderTransformView.vue')
     },
   ]
 })

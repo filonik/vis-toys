@@ -11,6 +11,8 @@ import type { WebGlResource, WebGlState, UseWebGlOptions } from "@/composables/u
 
 import useCamera from '@/composables/useCamera'
 
+import * as A from "@/lib/arrays"
+
 import { mat4f } from "@/lib/tensors"
 
 import { basicSetup } from 'codemirror'
@@ -70,12 +72,20 @@ d2e3 f(in d2e3vec3 x) {
 `
 */
 
+type Options = {
+  args: Array<number>
+}
+
 type State = {
   source: string
+  options: Options
 }
 
 const stateRef = ref<State>({
-    source: DEFAULT_SOURCE
+    source: DEFAULT_SOURCE,
+    options: {
+        args: [0,0,0,0],
+    }
 })
 
 const state = toReactive(stateRef)
@@ -159,7 +169,26 @@ const uniformData = {
         options.size?.[0] ?? 0, options.size?.[1] ?? 0,
         // time
         0, 0
-    ])
+    ]),
+    set: (obj: {
+        args?: Array<number>,
+        resolution?: [number,number],
+        time?: number    
+    }) => {
+        if(obj.args) {
+            uniformData.data[32] = obj.args[0]
+            uniformData.data[33] = obj.args[1]
+            uniformData.data[34] = obj.args[2]
+            uniformData.data[35] = obj.args[3]
+        }
+        if(obj.resolution) {
+            uniformData.data[36] = obj.resolution[0]
+            uniformData.data[37] = obj.resolution[1]
+        }
+        if(obj.time) {
+            uniformData.data[38] = obj.time
+        }
+    }
 }
 
 const meshData = {
@@ -393,9 +422,12 @@ const renderer: WebGlResource = {
 
         if (!program.value) return
 
-        transformInplace(uniformData.data.subarray(16,32))
+        uniformData.set({
+            args: state.options.args,
+            time: timestamp/1000.0,
+        })
 
-        uniformData.data[38] = timestamp/1000.0
+        transformInplace(uniformData.data.subarray(16,32))
 
         uniforms.onUpdate?.(args)
 
@@ -477,6 +509,25 @@ watch(stateRef, save, { immediate: true })
     <template v-slot:output>
       <div class="flex flex-col">
         <WebGlCanvas :renderer :listeners :options/>
+        <div class="flex flex-col p-2">
+          <details>
+            <summary class="flex flex-row items-center gap-2 my-1">
+              <h2>Global</h2>
+            </summary>
+            <div v-for="i of A.range(0,4)" class="flex flex-row items-center gap-2" :key="i">
+              <label class="w-16 text-xs text-right font-mono">args[{{ i }}]:</label>
+              <input class="w-16" type="number" step="0.1" v-model="state.options.args[i]"/>
+              <input class="flex-grow" type="range" min="-1" max="1" step="0.01" v-model="state.options.args[i]" />
+              <!--
+              <div class="flex-grow flex flex-row gap-2">
+                <label>-1</label>
+                <input class="flex-grow" type="range" min="-1" max="1" step="0.01" v-model="state.options.args[i]" />
+                <label>+1</label>
+              </div>
+              -->
+            </div>
+          </details>
+        </div>
       </div>
     </template>
   </PageMain>

@@ -11,7 +11,7 @@ import { basicSetup } from 'codemirror'
 import { StreamLanguage } from "@codemirror/language"
 import { shader } from "@codemirror/legacy-modes/mode/clike"
 
-import { importBuiltin, importCustomOperators } from '@/lib/graphics/glsl/shaders'
+import { importBuiltin, importCustom } from '@/lib/graphics/glsl/shaders'
 import { process } from '@/lib/graphics/glsl/shaders/utilities'
 
 const editorConfig = {
@@ -35,6 +35,8 @@ const stateRef = ref<State>({
 const state = toReactive(stateRef)
 
 const shaderSource = (source: string) => `${importBuiltin()}
+
+${importCustom()}
 
 ${source}
 `

@@ -358,7 +358,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
   LPos += vec3(0., sin(2. * pi / 10. * uGlobal.time), 0.) * 1.5;
   
-  vec3 col;
+  vec4 col;
   float t;
   int steps;
   //float d;
@@ -371,21 +371,21 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
       d2e3(P.z, vec3(0,0,1), mat3(0))
     ));
 
-    col = fColor(P, rayDir, result);
+    col = vec4(fColor(P, rayDir, result), 1.);
   } else {
 #if BACKGROUND == 0
-    col = vec3(1.);
+    col = vec4(0.);
 #else
-    col = 0.9 * pow(texture(iChannel1, rayDir).xyz, vec3(2.2));
+    col = vec4(0.9 * pow(texture(iChannel1, rayDir).xyz, vec3(2.2)), 1.);
 #endif
   }
 
 #if BACKGROUND == 0
-  fragColor = vec4(col, 1.);
+  fragColor = col;
 #else
-  vec3 tot = col;
+  vec3 tot = col.xyz;
   tot = pow(clamp(tot, 0.0, 1.0), vec3(0.45));	
-  fragColor = vec4(tot, 1.0);
+  fragColor = vec4(tot, col.w);
 #endif
 }
 

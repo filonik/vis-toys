@@ -119,6 +119,11 @@ const ARRAY_TYPES: Array<ArrayType> = [
     valueType: "float",
   },
   {
+    name: "d2e2",
+    shape: [],
+    valueType: "d2e2",
+  },
+  {
     name: "d2e2vec1",
     shape: [1],
     valueType: "d2e2",
@@ -138,16 +143,37 @@ const ARRAY_TYPES: Array<ArrayType> = [
     shape: [4],
     valueType: "d2e2",
   },
+  {
+    name: "d2e3",
+    shape: [],
+    valueType: "d2e3",
+  },
+  {
+    name: "d2e3vec1",
+    shape: [1],
+    valueType: "d2e3",
+  },
+  {
+    name: "d2e3vec2",
+    shape: [2],
+    valueType: "d2e3",
+  },
+  {
+    name: "d2e3vec3",
+    shape: [3],
+    valueType: "d2e3",
+  },
+  {
+    name: "d2e3vec4",
+    shape: [4],
+    valueType: "d2e3",
+  },
 ]
 const ARRAY_TYPES_BY_NAME = Object.fromEntries(ARRAY_TYPES.map((type) => [type.name, type]))
 
 const BUILTIN_SCALAR_TYPE_NAMES: Array<string> = ['float']
 const BUILTIN_VECTOR_TYPE_NAMES: Array<string> = ['vec2', 'vec3', 'vec4']
 const BUILTIN_MATRIX_TYPE_NAMES: Array<string> = ['mat2', 'mat3', 'mat4']
-
-const CUSTOM_SCALAR_TYPE_NAMES: Array<string> = []
-const CUSTOM_VECTOR_TYPE_NAMES: Array<string> = ['vec1']
-const CUSTOM_MATRIX_TYPE_NAMES: Array<string> = ['mat1']
 
 const builtinGetItem: (type: ArrayType, index: Array<number>) => string = (type, index) => {
   if (type.shape.length == 0) {
@@ -213,6 +239,32 @@ const generateBuiltinArrayFunctions: (type: ArrayType) => string[] = (type) => A
   */
 )
 
+const importBuiltinOperators = () => A.concat(
+  BUILTIN_SCALAR_TYPE_NAMES.map((type) => generateBuiltinScalarOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+  BUILTIN_VECTOR_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+  BUILTIN_MATRIX_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+).join('\n\n')
+
+const importBuiltinFunctions = () => A.concat(
+  BUILTIN_SCALAR_TYPE_NAMES.map((type) => generateBuiltinScalarFunctions(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+  BUILTIN_VECTOR_TYPE_NAMES.map((type) => generateBuiltinArrayFunctions(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+  //BUILTIN_MATRIX_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
+).join('\n\n')
+
+export const importBuiltin = () =>`#ifndef BUILTIN_H
+#define BUILTIN_H
+
+${importBuiltinOperators()}
+
+${importBuiltinFunctions()}
+
+#endif
+`
+
+const CUSTOM_SCALAR_TYPE_NAMES: Array<string> = []
+const CUSTOM_VECTOR_TYPE_NAMES: Array<string> = ['vec1'] //['d2e3vec1', 'd2e3vec2', 'd2e3vec3', 'd2e3vec4']
+const CUSTOM_MATRIX_TYPE_NAMES: Array<string> = ['mat1']
+
 const generateCustomScalarOperators: (type: ArrayType) => string[] = (type) => []
 
 const generateCustomArrayOperators: (type: ArrayType) => string[] = (type) => A.concat(
@@ -229,31 +281,17 @@ const generateCustomArrayOperators: (type: ArrayType) => string[] = (type) => A.
   ])
 )
 
-const importBuiltinOperators = () => A.concat(
-  BUILTIN_SCALAR_TYPE_NAMES.map((type) => generateBuiltinScalarOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
-  BUILTIN_VECTOR_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
-  BUILTIN_MATRIX_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
-).join('\n\n')
-
-const importBuiltinFunctions = () => A.concat(
-  BUILTIN_SCALAR_TYPE_NAMES.map((type) => generateBuiltinScalarFunctions(ARRAY_TYPES_BY_NAME[type]).join('\n')),
-  BUILTIN_VECTOR_TYPE_NAMES.map((type) => generateBuiltinArrayFunctions(ARRAY_TYPES_BY_NAME[type]).join('\n')),
-  //BUILTIN_MATRIX_TYPE_NAMES.map((type) => generateBuiltinArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
-).join('\n\n')
-
-
-export const importBuiltin = () =>`#ifndef BUILTIN_H
-#define BUILTIN_H
-
-${importBuiltinOperators()}
-
-${importBuiltinFunctions()}
-
-#endif
-`
-
-export const importCustomOperators = () => A.concat(
+const importCustomOperators = () => A.concat(
   CUSTOM_SCALAR_TYPE_NAMES.map((type) => generateCustomScalarOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
   CUSTOM_VECTOR_TYPE_NAMES.map((type) => generateCustomArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
   CUSTOM_MATRIX_TYPE_NAMES.map((type) => generateCustomArrayOperators(ARRAY_TYPES_BY_NAME[type]).join('\n')),
 ).join('\n\n')
+
+
+export const importCustom = () =>`#ifndef CUSTOM_H
+#define CUSTOM_H
+
+${importCustomOperators()}
+
+#endif
+`

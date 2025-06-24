@@ -4,20 +4,20 @@
 #define vec1 float[1]
 #define mat1 float[1*1]
 
-vec1 _pos_(in vec1 x) { return vec1(_pos_(x[0*1])); }
-vec1 _neg_(in vec1 x) { return vec1(_neg_(x[0*1])); }
-vec1 _add_(in vec1 x, in float y) { return vec1(_add_(x[0*1], y)); }
-vec1 _add_(in float x, in vec1 y) { return vec1(_add_(x, y[0*1])); }
-vec1 _add_(in vec1 x, in vec1 y) { return vec1(_add_(x[0*1], y[0*1])); }
-vec1 _sub_(in vec1 x, in float y) { return vec1(_sub_(x[0*1], y)); }
-vec1 _sub_(in float x, in vec1 y) { return vec1(_sub_(x, y[0*1])); }
-vec1 _sub_(in vec1 x, in vec1 y) { return vec1(_sub_(x[0*1], y[0*1])); }
-vec1 _mul_(in vec1 x, in float y) { return vec1(_mul_(x[0*1], y)); }
-vec1 _mul_(in float x, in vec1 y) { return vec1(_mul_(x, y[0*1])); }
-vec1 _mul_(in vec1 x, in vec1 y) { return vec1(_mul_(x[0*1], y[0*1])); }
-vec1 _div_(in vec1 x, in float y) { return vec1(_div_(x[0*1], y)); }
-vec1 _div_(in float x, in vec1 y) { return vec1(_div_(x, y[0*1])); }
-vec1 _div_(in vec1 x, in vec1 y) { return vec1(_div_(x[0*1], y[0*1])); }
+vec1 _pos_(in vec1 x) { return vec1(_pos_(x[0])); }
+vec1 _neg_(in vec1 x) { return vec1(_neg_(x[0])); }
+vec1 _add_(in vec1 x, in float y) { return vec1(_add_(x[0], y)); }
+vec1 _add_(in float x, in vec1 y) { return vec1(_add_(x, y[0])); }
+vec1 _add_(in vec1 x, in vec1 y) { return vec1(_add_(x[0], y[0])); }
+vec1 _sub_(in vec1 x, in float y) { return vec1(_sub_(x[0], y)); }
+vec1 _sub_(in float x, in vec1 y) { return vec1(_sub_(x, y[0])); }
+vec1 _sub_(in vec1 x, in vec1 y) { return vec1(_sub_(x[0], y[0])); }
+vec1 _mul_(in vec1 x, in float y) { return vec1(_mul_(x[0], y)); }
+vec1 _mul_(in float x, in vec1 y) { return vec1(_mul_(x, y[0])); }
+vec1 _mul_(in vec1 x, in vec1 y) { return vec1(_mul_(x[0], y[0])); }
+vec1 _div_(in vec1 x, in float y) { return vec1(_div_(x[0], y)); }
+vec1 _div_(in float x, in vec1 y) { return vec1(_div_(x, y[0])); }
+vec1 _div_(in vec1 x, in vec1 y) { return vec1(_div_(x[0], y[0])); }
 
 mat1 outer(in vec1 x, in vec1 y);
 mat2 outer(in vec2 x, in vec2 y);
