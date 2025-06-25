@@ -46,6 +46,7 @@ export const UNARY_FUNCTIONS: Record<string, string> = {
   "asinh": "_asinh_",
   "atanh": "_atanh_",
   "sqrt": "_sqrt_",
+  "abs": "_abs_",
   "ceil": "_ceil_",
   "floor": "_floor_",
 }

@@ -35,6 +35,10 @@ const implicitSurfaces = [
         path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIGZsb2F0IFIgPSAyLjtcbiAgZmxvYXQgciA9IDEuO1xuICBkMmUzIGxocyA9IHhbMF0qeFswXSArIHhbMV0qeFsxXSArIHhbMl0qeFsyXSArIFIqUiAtICByKnI7XG4gIGQyZTMgcmhzID0gNC4qUipSICogKHhbMF0qeFswXSArIHhbMV0qIHhbMV0pO1xuICByZXR1cm4gbGhzKmxocyAtIHJocztcbn0nfQ'
     },
     {
+        title: "Cuphere",
+        path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIGQyZTN2ZWMzIHh4ID0gcG93KGFicyh4KSwgNC4qdUdsb2JhbC5hcmdzWzBdKTtcbiAgcmV0dXJuIHh4WzBdICsgeHhbMV0gKyB4eFsyXSAtIDIuO1xufScsb3B0aW9uczp7YXJnczpbJzAuNScsMCwwLDBdfX0',
+    },
+    {
         title: "Clebsch Cubic",
         path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIHJldHVybiA4MS4qKHhbMF0qeFswXSp4WzBdICsgeFsxXSp4WzFdKnhbMV0gKyB4WzJdKnhbMl0qeFsyXSlcbiAgICAtIDE4OS4qKHhbMF0qeFswXSp4WzFdICsgeFswXSp4WzBdKnhbMl0gKyB4WzFdKnhbMV0qeFswXSArICB4WzFdKnhbMV0qeFsyXSArIHhbMl0qeFsyXSp4WzBdICsgIHhbMl0qeFsyXSp4WzFdKVxuICAgICsgNTQuKih4WzBdKnhbMV0qeFsyXSlcbiAgICArIDEyNi4qKHhbMF0qeFsxXSArIHhbMF0qeFsyXSArIHhbMV0qeFsyXSlcbiAgICAtIDkuKih4WzBdKnhbMF0gKyB4WzFdKnhbMV0gKyB4WzJdKnhbMl0pXG4gICAgLSA5LiooeFswXSArIHhbMV0gKyB4WzJdKVxuICAgICsgMS47XG59J30'
     },
@@ -47,7 +51,7 @@ const implicitSurfaces = [
         path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIHJldHVybiB4WzBdKnhbMF0gKyB4WzFdKnhbMV0gLSAoMS4gLSB4WzJdKSp4WzJdKnhbMl07XG59J30',
     },
     {
-        title: "Unknown",
+        title: "Leon Lampret",
         path: '#/implicit-surface/?state=e3NvdXJjZTonQHBsb3RfaW1wbGljaXRcbmQyZTMgZihpbiBkMmUzdmVjMyB4KSB7XG4gIGZsb2F0IGMyID0gMi47XG4gIGQyZTMgZjEgPSBwb3coeFswXSAtIGMyLCAyLikqcG93KHhbMF0gKyBjMiwgMi4pO1xuICBkMmUzIGYyID0gcG93KHhbMV0gLSBjMiwgMi4pKnBvdyh4WzFdICsgYzIsIDIuKTtcbiAgZDJlMyBmMyA9IHBvdyh4WzJdIC0gYzIsIDIuKSpwb3coeFsyXSArIGMyLCAyLik7XG4gIFxuICBkMmUzIGY0ID0gMy4qKHhbMF0qeFswXSp4WzFdKnhbMV0gKyB4WzBdKnhbMF0qeFsyXSp4WzJdICsgeFsxXSp4WzFdKnhbMl0qeFsyXSk7XG5cbiAgZDJlMyBmNSA9IDYuKih4WzBdKnhbMV0qeFsyXSk7XG4gIGQyZTMgZjYgPSAtMTAuKih4WzBdKnhbMF0gKyB4WzFdKnhbMV0gKyB4WzJdKnhbMl0pO1xuXG4gIHJldHVybiBmMSArIGYyICsgZjMgKyBmNCArIGY1ICsgZjYgKyAyMi47XG59XG4nfQ'
     }
 ]

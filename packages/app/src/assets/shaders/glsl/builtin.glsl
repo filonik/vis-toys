@@ -113,6 +113,7 @@ float _acosh_(in float x) { return acosh(x); }
 float _asinh_(in float x) { return asinh(x); }
 float _atanh_(in float x) { return atanh(x); }
 float _sqrt_(in float x) { return sqrt(x); }
+float _abs_(in float x) { return abs(x); }
 float _ceil_(in float x) { return ceil(x); }
 float _floor_(in float x) { return floor(x); }
 float _atan_(in float x, in float y) { return atan(x, y); }
@@ -135,6 +136,7 @@ vec2 _acosh_(in vec2 x) { return acosh(x); }
 vec2 _asinh_(in vec2 x) { return asinh(x); }
 vec2 _atanh_(in vec2 x) { return atanh(x); }
 vec2 _sqrt_(in vec2 x) { return sqrt(x); }
+vec2 _abs_(in vec2 x) { return abs(x); }
 vec2 _ceil_(in vec2 x) { return ceil(x); }
 vec2 _floor_(in vec2 x) { return floor(x); }
 vec2 _atan_(in vec2 x, in vec2 y) { return atan(x, y); }
@@ -157,6 +159,7 @@ vec3 _acosh_(in vec3 x) { return acosh(x); }
 vec3 _asinh_(in vec3 x) { return asinh(x); }
 vec3 _atanh_(in vec3 x) { return atanh(x); }
 vec3 _sqrt_(in vec3 x) { return sqrt(x); }
+vec3 _abs_(in vec3 x) { return abs(x); }
 vec3 _ceil_(in vec3 x) { return ceil(x); }
 vec3 _floor_(in vec3 x) { return floor(x); }
 vec3 _atan_(in vec3 x, in vec3 y) { return atan(x, y); }
@@ -179,6 +182,7 @@ vec4 _acosh_(in vec4 x) { return acosh(x); }
 vec4 _asinh_(in vec4 x) { return asinh(x); }
 vec4 _atanh_(in vec4 x) { return atanh(x); }
 vec4 _sqrt_(in vec4 x) { return sqrt(x); }
+vec4 _abs_(in vec4 x) { return abs(x); }
 vec4 _ceil_(in vec4 x) { return ceil(x); }
 vec4 _floor_(in vec4 x) { return floor(x); }
 vec4 _atan_(in vec4 x, in vec4 y) { return atan(x, y); }

@@ -195,11 +195,11 @@ d2e3 _sqrt_(in d2e3 a)
     return d2e3(v, da * a.g,  da * a.h + dda * outer(a.g,a.g));
 }
 
-d2e3 _pow_(in d2e3 a, in float b)
+d2e3 _abs_(in d2e3 a)
 {
-    float v = pow(a.s, b); // value f(a(x))
-    float da = b*pow(a.s,b-1.0); // first derivative f'(a(x))
-    float dda = b*(b-1.0)*pow(a.s,b-2.0); // second derivative f''(a(x))
+    float v = abs(a.s); // value f(a(x))
+    float da = a.s < 0.0 ? -1.0 : 1.0; // first derivative f'(a(x))
+    float dda = 0.0; // second derivative f''(a(x))
     return d2e3(v , da * a.g,  da * a.h + dda * outer(a.g,a.g));
 }
 
@@ -236,6 +236,19 @@ d2e3 _pow_(in d2e3 x, in int n)
     return _mul_(x, y);
 }
 */
+
+d2e3 _pow_(in d2e3 a, in float b)
+{
+    float v = pow(a.s, b); // value f(a(x))
+    float da = b*pow(a.s,b-1.0); // first derivative f'(a(x))
+    float dda = b*(b-1.0)*pow(a.s,b-2.0); // second derivative f''(a(x))
+    return d2e3(v , da * a.g,  da * a.h + dda * outer(a.g,a.g));
+}
+
+d2e3 _pow_(in d2e3 a, in d2e3 b)
+{
+    return _exp_(_mul_(_log_(a), b));
+}
 
 #define d2e2vec1 d2e2[1]
 #define d2e2vec2 d2e2[2]
@@ -313,7 +326,42 @@ d2e3vec1 _mul_(in float x, in d2e3vec1 y) { return d2e3vec1(_mul_(x, y[0])); }
 d2e3vec2 _mul_(in d2e3vec2 x, in float y) { return d2e3vec2(_mul_(x[0], y),_mul_(x[1], y)); }
 d2e3vec2 _mul_(in float x, in d2e3vec2 y) { return d2e3vec2(_mul_(x, y[0]),_mul_(x, y[1])); }
 
+d2e3vec3 _add_(in d2e3vec3 x, in float y) { return d2e3vec3(_add_(x[0], y),_add_(x[1], y),_add_(x[2], y)); }
+d2e3vec3 _add_(in float x, in d2e3vec3 y) { return d2e3vec3(_add_(x, y[0]),_add_(x, y[1]),_add_(x, y[2])); }
+d2e3vec3 _sub_(in d2e3vec3 x, in float y) { return d2e3vec3(_add_(x[0], y),_add_(x[1], y),_add_(x[2], y)); }
+d2e3vec3 _sub_(in float x, in d2e3vec3 y) { return d2e3vec3(_add_(x, y[0]),_add_(x, y[1]),_add_(x, y[2])); }
 d2e3vec3 _mul_(in d2e3vec3 x, in float y) { return d2e3vec3(_mul_(x[0], y),_mul_(x[1], y),_mul_(x[2], y)); }
 d2e3vec3 _mul_(in float x, in d2e3vec3 y) { return d2e3vec3(_mul_(x, y[0]),_mul_(x, y[1]),_mul_(x, y[2])); }
+d2e3vec3 _div_(in d2e3vec3 x, in float y) { return d2e3vec3(_add_(x[0], y),_add_(x[1], y),_add_(x[2], y)); }
+d2e3vec3 _div_(in float x, in d2e3vec3 y) { return d2e3vec3(_add_(x, y[0]),_add_(x, y[1]),_add_(x, y[2])); }
+
+d2e3vec3 _pow_(in d2e3vec3 x, in float y) { return d2e3vec3(_pow_(x[0], y),_pow_(x[1], y),_pow_(x[2], y)); }
+//d2e3vec3 _pow_(in float x, in d2e3vec3 y) { return d2e3vec3(_pow_(x, y[0]),_pow_(x, y[1]),_pow_(x, y[2])); }
+
+d2e3vec3 _exp_(in d2e3vec3 x) { return d2e3vec3(_exp_(x[0]),_exp_(x[1]),_exp_(x[2])); }
+d2e3vec3 _log_(in d2e3vec3 x) { return d2e3vec3(_log_(x[0]),_log_(x[1]),_log_(x[2])); }
+d2e3vec3 _sin_(in d2e3vec3 x) { return d2e3vec3(_sin_(x[0]),_sin_(x[1]),_sin_(x[2])); }
+d2e3vec3 _cos_(in d2e3vec3 x) { return d2e3vec3(_cos_(x[0]),_cos_(x[1]),_cos_(x[2])); }
+d2e3vec3 _tan_(in d2e3vec3 x) { return d2e3vec3(_tan_(x[0]),_tan_(x[1]),_tan_(x[2])); }
+d2e3vec3 _asin_(in d2e3vec3 x) { return d2e3vec3(_asin_(x[0]),_asin_(x[1]),_asin_(x[2])); }
+d2e3vec3 _acos_(in d2e3vec3 x) { return d2e3vec3(_acos_(x[0]),_acos_(x[1]),_acos_(x[2])); }
+d2e3vec3 _atan_(in d2e3vec3 x) { return d2e3vec3(_atan_(x[0]),_atan_(x[1]),_atan_(x[2])); }
+d2e3vec3 _sqrt_(in d2e3vec3 x) { return d2e3vec3(_sqrt_(x[0]),_sqrt_(x[1]),_sqrt_(x[2])); }
+d2e3vec3 _abs_(in d2e3vec3 x) { return d2e3vec3(_abs_(x[0]),_abs_(x[1]),_abs_(x[2])); }
+
+// TODO...
+/*
+bool _isnan_(in d2e3 x) { return isnan(x.s); }
+bool _isinf_(in d2e3 x) { return isinf(x.s); }
+
+bvec3 _isnan_(in d2e3vec3 x) { return bvec3(_isnan_(x[0]), _isnan_(x[1]), _isnan_(x[2])); }
+bvec3 _isinf_(in d2e3vec3 x) { return bvec3(_isinf_(x[0]), _isinf_(x[1]), _isinf_(x[2])); }
+
+bool _lt_(in d2e3 x, in float y) { return x.s < y; }
+bool _lt_(in float x, in d2e3 y) { return x < y.s; }
+
+bvec3 _lt_(in d2e3vec3 x, in float y) { return bvec3(_lt_(x[0], y),_lt_(x[1], y),_lt_(x[2], y)); }
+bvec3 _lt_(in float x, in d2e3vec3 y) { return bvec3(_lt_(x, y[0]),_lt_(x, y[1]),_lt_(x, y[2])); }
+*/
 
 #endif // DUAL_H_

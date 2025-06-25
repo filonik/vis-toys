@@ -268,7 +268,7 @@ vec2 intersect(in vec3 ro, in vec3 rd, out vec3 pos, out int steps) {
 	float mind = eps*2.0;
 	float maxd = 100.0;
 	
-    // Clip Sphere
+  // Clip Sphere
 	{
       float r = 4.0;
 	  float b = dot(ro,rd);
@@ -278,9 +278,9 @@ vec2 intersect(in vec3 ro, in vec3 rd, out vec3 pos, out int steps) {
 	  h = sqrt(h);
 	  mind = max(mind, -b - h);
 	  maxd = min(maxd, -b + h);
-    }
+  }
 
-    float h = 1.0;
+  float h = 1.0;
 	float t = mind;
     for (int i = 0; i < maxSteps; i++) {
         if(abs(h) < eps || t > maxd) continue;
